@@ -1,0 +1,2 @@
+Criar os menus a interação com o usuário
+A pesquisa por gênero e idade procura sequencialmente no arquivo, mas deve procurar sequencialmente na memória
