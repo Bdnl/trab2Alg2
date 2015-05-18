@@ -83,20 +83,83 @@ typedef struct {
 
 #include "registro.h"
 
+/**
+ * Inicializa database com os valores padrões
+ * @param db necessariamente não inicializada
+ */
 void initDB(database_t *db);
+
+/* ====================================================
+   FUNÇÕES PARA ABRIR ARQUIVOS
+   ==================================================== */
+
 FILE *abrirArquivoDB(database_t *db, char *mode);
+
 FILE *abrirArquivoIdx(database_t *db, char *mode);
+
 FILE *abrirArquivoIdade(database_t *db, char *mode);
+
 FILE *abrirArquivoGeneros(database_t *db, char *mode);
+
 FILE *abrirArquivoGenerosTable(database_t *db, char *mode);
+
+/* ====================================================
+   FUNÇÕES PARA FECHAR ARQUIVO
+   ==================================================== */
+
 void fecharArquivoDB(database_t *db);
+
 void fecharArquivoIdx(database_t *db);
+
 void fecharArquivoIdade(database_t *db);
+
 void fecharArquivoGeneros(database_t *db);
+
 void fecharArquivoGenerosTable(database_t *db);
+
+/**
+ * Dado um conjunto de índices secundários, procura o nó com o valor de cod
+ * @param  secundary com a lista de nós
+ * @param  cod       será procurado na lista
+ * @return           -1 caso não encontre
+ */
 int getNodePos(secundary_t *secundary, int cod);
-void zerarSecundaryNode(secundary_node_t *node);
+
+/**
+ * inicializa um nó de índices secundarios
+ * @param node necessariamente não inicializada
+ */
+void initSecundaryNode(secundary_node_t *node);
+
+/**
+ * cria um novo índice secundário
+ * @param db             previamente inicializada
+ * @param secundary      previamente inicializada
+ * @param cod            cod do novo índice
+ * @param id             id que apontará o índice
+ * @param file_principal nome do arquivo principal de índice secundário
+ * @param file_list      novo do arquivo que contem a lista reversa do índice secundário
+ */
 void newSecundaryIdx(database_t *db, secundary_t *secundary, int cod, id_type id, char *file_principal, char *file_list);
+
+/**
+ * carrega para a memória RAM um índice secundário
+ * @param db             previamente inicializada
+ * @param secundary      não necessariamente inicializada, será alterada
+ * @param file_principal nome do arquivo principal de índice secundário
+ * @param file_list      novo do arquivo que contem a lista reversa do índice secundário
+ */
 void loadSecundaryIdx(database_t *db, secundary_t *secundary, char *file_principal, char *file_list);
+
+/**
+ * libera um índice secundário
+ * @param secundary previamente inicializado
+ */
+void freeSecundaryIdx(secundary_t *secundary);
+
+/**
+ * libera e encerra o db
+ * @param db previamente inicializado
+ */
 void closeDB(database_t *db);
 #endif

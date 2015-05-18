@@ -12,6 +12,10 @@
 #define realloc _realloc
 #define calloc _calloc
 
+/**
+ * Inicializa database com os valores padrões
+ * @param db necessariamente não inicializada
+ */
 void initDB(database_t *db) {
 	// zera completamente db
 	memset(db, 0, sizeof(database_t));
@@ -59,6 +63,10 @@ void initDB(database_t *db) {
 	fclose(fd);
 }
 
+/* ====================================================
+   FUNÇÕES PARA ABRIR ARQUIVOS
+   ==================================================== */
+
 FILE *abrirArquivoDB(database_t *db, char *mode) {
 	if(db->file_db != NULL) {
 		return db->file_db;
@@ -99,6 +107,10 @@ FILE *abrirArquivoGenerosTable(database_t *db, char *mode) {
 	return db->file_generos_table;
 }
 
+/* ====================================================
+   FUNÇÕES PARA FECHAR ARQUIVO
+   ==================================================== */
+
 void fecharArquivoDB(database_t *db) {
 	fclose(db->file_db);
 	db->file_db = NULL;
@@ -124,6 +136,12 @@ void fecharArquivoGenerosTable(database_t *db) {
 	db->file_generos_table = NULL;
 }
 
+/**
+ * Dado um conjunto de índices secundários, procura o nó com o valor de cod
+ * @param  secundary com a lista de nós
+ * @param  cod       será procurado na lista
+ * @return           -1 caso não encontre
+ */
 int getNodePos(secundary_t *secundary, int cod) {
 	int i;
 	for(i=0; i<secundary->num_node; i++) {
@@ -134,11 +152,24 @@ int getNodePos(secundary_t *secundary, int cod) {
 	return -1;
 }
 
-void zerarSecundaryNode(secundary_node_t *node) {
+/**
+ * inicializa um nó de índices secundarios
+ * @param node necessariamente não inicializada
+ */
+void initSecundaryNode(secundary_node_t *node) {
 	memset(node, 0, sizeof(secundary_node_t));
 	node->last_pos = -1;
 }
 
+/**
+ * cria um novo índice secundário
+ * @param db             previamente inicializada
+ * @param secundary      previamente inicializada
+ * @param cod            cod do novo índice
+ * @param id             id que apontará o índice
+ * @param file_principal nome do arquivo principal de índice secundário
+ * @param file_list      novo do arquivo que contem a lista reversa do índice secundário
+ */
 void newSecundaryIdx(database_t *db, secundary_t *secundary, int cod, id_type id, char *file_principal, char *file_list) {
 	#ifdef DEBUG
 		printf("Inserindo no secundario: %d => %d\n", cod, id);
@@ -151,7 +182,7 @@ void newSecundaryIdx(database_t *db, secundary_t *secundary, int cod, id_type id
 		secundary->nodes = realloc(secundary->nodes, secundary->num_node * sizeof(secundary_node_t));
 		// obtem a nova posicao do nó
 		pos_node = secundary->num_node - 1;
-		zerarSecundaryNode(secundary->nodes + pos_node);
+		initSecundaryNode(secundary->nodes + pos_node);
 		secundary->nodes[pos_node].cod = cod;
 	}
 	secundary_node_t *node = secundary->nodes + pos_node;
@@ -173,6 +204,13 @@ void newSecundaryIdx(database_t *db, secundary_t *secundary, int cod, id_type id
 	fclose(fd);
 }
 
+/**
+ * carrega para a memória RAM um índice secundário
+ * @param db             previamente inicializada
+ * @param secundary      não necessariamente inicializada, será alterada
+ * @param file_principal nome do arquivo principal de índice secundário
+ * @param file_list      novo do arquivo que contem a lista reversa do índice secundário
+ */
 void loadSecundaryIdx(database_t *db, secundary_t *secundary, char *file_principal, char *file_list) {
 	// carregando o arquivo principal
 	FILE *fd_principal = fopen(file_principal, "r");
@@ -192,11 +230,19 @@ void loadSecundaryIdx(database_t *db, secundary_t *secundary, char *file_princip
 	fclose(fd_principal);
 }
 
+/**
+ * libera um índice secundário
+ * @param secundary previamente inicializado
+ */
 void freeSecundaryIdx(secundary_t *secundary) {
 	free(secundary->nodes);
 	free(secundary->pos_list);
 }
 
+/**
+ * libera e encerra o db
+ * @param db previamente inicializado
+ */
 void closeDB(database_t *db) {
 	// fecha todos os arquivos
 	fecharArquivoDB(db);
@@ -205,6 +251,7 @@ void closeDB(database_t *db) {
 	fecharArquivoGeneros(db);
 	fecharArquivoGenerosTable(db);
 
+	// libera na memória
 	freeSecundaryIdx(&db->idx_idade);
 	freeSecundaryIdx(&db->idx_genero);
 	free(db->idx_id);
