@@ -1,2 +1,3 @@
 Criar os menus a interação com o usuário
 A pesquisa por gênero e idade procura sequencialmente no arquivo, mas deve procurar sequencialmente na memória
+Remoção não altera as chaves secundárias e o índice primário, tanto em RAM quanto em Disco

@@ -67,7 +67,7 @@ offset_t novoRegistro(database_t *db, registro_t *reg) {
 	}
 	FILE *fd = abrirArquivoDB(db, "a");
 	// offset indica o valor do primeiro caracter no arquivo
-	int offset = ftell(fd) + 1;
+	offset_t offset = ftell(fd) + 1;
 	char buffer[REGSIZE];
 	uint8_t buffer_size;
 	buffer_size = registroToBuffer(reg, buffer);

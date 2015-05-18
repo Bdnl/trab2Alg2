@@ -11,7 +11,7 @@
 
 int main(int argc, char *argv[]) {
 	#ifdef DEBUG
-		registro_t reg_new = {1, "Nome", 20, 'M', "Rock@Pagode@Axe", 1};
+		registro_t reg_new = {1, "Nome", 20, 'M', "Nova MPB@Pagode@Axe", 1};
 		database_t db;
 		initDB(&db);
 		generosStrToCod(&db, reg_new.generos);
