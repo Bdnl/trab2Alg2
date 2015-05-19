@@ -89,11 +89,11 @@ offset_t novoRegistro(database_t *db, registro_t *reg) {
 	fwrite(buffer, sizeof(char), buffer_size, fd);
 	fecharArquivoDB(db);
 	// atualiza o registro secundario idade
-	newSecundaryIdx(db, &db->idx_idade, reg->idade, reg->id, IDADEFILENAME, IDADELISTFILENAME);
+	newSecundaryIdx(db, &db->idx_idade, reg->idade, reg->id, IDADEFILENAME);
 	// atualiza o registro secundario de generos
 	int i = 0;
 	while(reg->generos[i]) {
-		newSecundaryIdx(db, &db->idx_genero, reg->generos[i], reg->id, GENEROSFILENAME, GENEROSLISTFILENAME);
+		newSecundaryIdx(db, &db->idx_genero, reg->generos[i], reg->id, GENEROSFILENAME);
 		i++;
 	}
 	// atualiza o indice primario

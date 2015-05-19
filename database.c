@@ -23,9 +23,7 @@ void initDB(database_t *db) {
 	fclose(fopen(DBFILENAME, "a"));
 	fclose(fopen(IDXFILENAME, "a"));
 	fclose(fopen(IDADEFILENAME, "a"));
-	fclose(fopen(IDADELISTFILENAME, "a"));
 	fclose(fopen(GENEROSFILENAME, "a"));
-	fclose(fopen(GENEROSLISTFILENAME, "a"));
 	fclose(fopen(GENEROSTABLEFILENAME, "a"));
 	// carrega todos os idx
 	// carrega idx principal
@@ -35,8 +33,8 @@ void initDB(database_t *db) {
 	fread(db->idx_id, sizeof(idx_id_t), db->num_id, fd);
 	fclose(fd);
 	// carrega os indices secundarios
-	loadSecundaryIdx(db, &db->idx_idade, IDADEFILENAME, IDADELISTFILENAME);
-	loadSecundaryIdx(db, &db->idx_genero, GENEROSFILENAME, GENEROSLISTFILENAME);
+	loadSecundaryIdx(db, &db->idx_idade, IDADEFILENAME);
+	loadSecundaryIdx(db, &db->idx_genero, GENEROSFILENAME);
 	// carrega a table de generos
 	fd = fopen(GENEROSTABLEFILENAME, "r");
 	db->genero_table.num_node = _file_size(fd) / sizeof(genero_node_t);
@@ -99,14 +97,6 @@ FILE *abrirArquivoGeneros(database_t *db, char *mode) {
 	return db->file_generos;
 }
 
-FILE *abrirArquivoGenerosTable(database_t *db, char *mode) {
-	if(db->file_generos_table != NULL) {
-		return db->file_generos_table;
-	}
-	db->file_generos_table = fopen(GENEROSFILENAME, mode);
-	return db->file_generos_table;
-}
-
 /* ====================================================
    FUNÇÕES PARA FECHAR ARQUIVO
    ==================================================== */
@@ -131,102 +121,57 @@ void fecharArquivoGeneros(database_t *db) {
 	db->file_generos = NULL;
 }
 
-void fecharArquivoGenerosTable(database_t *db) {
-	fclose(db->file_generos_table);
-	db->file_generos_table = NULL;
-}
-
-/**
- * Dado um conjunto de índices secundários, procura o nó com o valor de cod
- * @param  secundary com a lista de nós
- * @param  cod       será procurado na lista
- * @return           -1 caso não encontre
- */
-int getNodePos(secundary_t *secundary, int cod) {
-	int i;
-	for(i=0; i<secundary->num_node; i++) {
-		if(secundary->nodes[i].cod == cod) {
-			return i;
-		}
-	}
-	return -1;
-}
-
 /**
  * inicializa um nó de índices secundarios
  * @param node necessariamente não inicializada
  */
 void initSecundaryNode(secundary_node_t *node) {
 	memset(node, 0, sizeof(secundary_node_t));
-	node->last_pos = -1;
 }
 
 /**
  * cria um novo índice secundário
- * @param db             previamente inicializada
- * @param secundary      previamente inicializada
- * @param cod            cod do novo índice
- * @param id             id que apontará o índice
- * @param file_principal nome do arquivo principal de índice secundário
- * @param file_list      novo do arquivo que contem a lista reversa do índice secundário
+ * @param db        previamente inicializada
+ * @param secundary previamente inicializada
+ * @param cod       cod do novo índice
+ * @param id        id que apontará o índice
+ * @param file_name nome do arquivo principal de índice secundário
  */
-void newSecundaryIdx(database_t *db, secundary_t *secundary, int cod, id_type id, char *file_principal, char *file_list) {
+void newSecundaryIdx(database_t *db, secundary_t *secundary, int cod, id_type id, char *file_name) {
 	#ifdef DEBUG
 		printf("Inserindo no secundario: %d => %d\n", cod, id);
 	#endif // DEBUG
-	// obtem a posicao do nó
-	int pos_node = getNodePos(secundary, cod);
-	if(pos_node == -1) {
-		// cria um novo nó
-		secundary->num_node++;
-		secundary->nodes = realloc(secundary->nodes, secundary->num_node * sizeof(secundary_node_t));
-		// obtem a nova posicao do nó
-		pos_node = secundary->num_node - 1;
-		initSecundaryNode(secundary->nodes + pos_node);
-		secundary->nodes[pos_node].cod = cod;
-	}
-	secundary_node_t *node = secundary->nodes + pos_node;
-	// aloca um novo espaço na lista para o novo id
-	secundary->num_list++;
-	secundary->pos_list = realloc(secundary->pos_list, secundary->num_list * sizeof(pos_list_t));
-	// insere o ID
-	pos_list_t *pos_list = secundary->pos_list + secundary->num_list - 1;
-	pos_list->id = id;
-	pos_list->next_pos = node->last_pos;
-	node->last_pos = secundary->num_list - 1;
+	// obtem a nova posicao do nó
+	int pos_node = secundary->num_node;
+	// cria um novo nó
+	secundary->num_node++;
+	secundary->nodes = realloc(secundary->nodes, secundary->num_node * sizeof(secundary_node_t));
+	initSecundaryNode(secundary->nodes + pos_node);
+	// seta as nocas condições
+	secundary->nodes[pos_node].cod = cod;
+	secundary->nodes[pos_node].id = id;
 	// atualiza todo o arquivo de idx
-	FILE *fd = fopen(file_principal, "w");
-	fwrite(secundary->nodes, sizeof(secundary_node_t), secundary->num_node, fd);
-	fclose(fd);
-	// agora insere no arquivo de lista, no final
-	fd = fopen(file_list, "a");
-	fwrite(pos_list, sizeof(pos_list_t), 1, fd);
+	FILE *fd = fopen(file_name, "a");
+	fwrite(secundary->nodes+pos_node, sizeof(secundary_node_t), 1, fd);
 	fclose(fd);
 }
 
 /**
  * carrega para a memória RAM um índice secundário
- * @param db             previamente inicializada
- * @param secundary      não necessariamente inicializada, será alterada
- * @param file_principal nome do arquivo principal de índice secundário
- * @param file_list      novo do arquivo que contem a lista reversa do índice secundário
+ * @param db        previamente inicializada
+ * @param secundary não necessariamente inicializada, será alterada
+ * @param file_name nome do arquivo principal de índice secundário
  */
-void loadSecundaryIdx(database_t *db, secundary_t *secundary, char *file_principal, char *file_list) {
+void loadSecundaryIdx(database_t *db, secundary_t *secundary, char *file_name) {
 	// carregando o arquivo principal
-	FILE *fd_principal = fopen(file_principal, "r");
-	FILE *fd_list = fopen(file_list, "r");
+	FILE *fd_principal = fopen(file_name, "r");
 
 	secundary->num_node = _file_size(fd_principal) / sizeof(secundary_node_t);
-	secundary->num_list = _file_size(fd_list) / sizeof(pos_list_t);
 	// aloca
 	secundary->nodes = malloc(secundary->num_node * sizeof(secundary_node_t));
-	secundary->pos_list = malloc(secundary->num_list * sizeof(pos_list_t));
 	// carrega o principal
 	fread(secundary->nodes, sizeof(secundary_node_t), secundary->num_node, fd_principal);
-	// carrega a lista
-	fread(secundary->pos_list, sizeof(pos_list_t), secundary->num_list, fd_list);
 
-	fclose(fd_list);
 	fclose(fd_principal);
 }
 
@@ -236,7 +181,6 @@ void loadSecundaryIdx(database_t *db, secundary_t *secundary, char *file_princip
  */
 void freeSecundaryIdx(secundary_t *secundary) {
 	free(secundary->nodes);
-	free(secundary->pos_list);
 }
 
 /**
@@ -249,7 +193,6 @@ void closeDB(database_t *db) {
 	fecharArquivoIdx(db);
 	fecharArquivoIdade(db);
 	fecharArquivoGeneros(db);
-	fecharArquivoGenerosTable(db);
 
 	// libera na memória
 	freeSecundaryIdx(&db->idx_idade);

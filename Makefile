@@ -19,11 +19,5 @@ $(EXECUTABLE): $(OBJECTS)
 
 clear:
 	rm *.o
-	rm "db.dat"
-	rm "idx.dat"
-	rm "idade.dat"
-	rm "idade_list.dat"
-	rm "generos.dat"
-	rm "generos_list.dat"
-	rm "generos_table.dat"
+	rm *.dat
 	rm $(EXECUTABLE)

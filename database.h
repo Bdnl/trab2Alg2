@@ -6,15 +6,13 @@
 #define DBFILENAME "db.dat"
 #define IDXFILENAME "idx.dat"
 #define IDADEFILENAME "idade.dat"
-#define IDADELISTFILENAME "idade_list.dat"
 #define GENEROSFILENAME "generos.dat"
-#define GENEROSLISTFILENAME "generos_list.dat"
 #define GENEROSTABLEFILENAME "generos_table.dat"
 
 // tamanho que um registro nao pode exceder
 #define REGSIZE  100
 #define NOMESIZE 50
-#define GENSIZE  256
+#define GENSIZE  100
 
 typedef uint     id_type;
 typedef uint8_t  idade_t;
@@ -30,19 +28,12 @@ typedef struct {
 
 typedef struct {
 	int cod; // codigo do registro secundario
-	int last_pos; // ultima posicao do id
+	id_type id;
 } secundary_node_t;
 
 typedef struct {
-	id_type id;
-	int next_pos;
-} pos_list_t;
-
-typedef struct {
 	secundary_node_t *nodes;
-	pos_list_t *pos_list;
 	uint num_node; // quantidade de nós
-	uint num_list; // tamanho da lista
 } secundary_t;
 
 typedef struct {
@@ -101,8 +92,6 @@ FILE *abrirArquivoIdade(database_t *db, char *mode);
 
 FILE *abrirArquivoGeneros(database_t *db, char *mode);
 
-FILE *abrirArquivoGenerosTable(database_t *db, char *mode);
-
 /* ====================================================
    FUNÇÕES PARA FECHAR ARQUIVO
    ==================================================== */
@@ -115,16 +104,6 @@ void fecharArquivoIdade(database_t *db);
 
 void fecharArquivoGeneros(database_t *db);
 
-void fecharArquivoGenerosTable(database_t *db);
-
-/**
- * Dado um conjunto de índices secundários, procura o nó com o valor de cod
- * @param  secundary com a lista de nós
- * @param  cod       será procurado na lista
- * @return           -1 caso não encontre
- */
-int getNodePos(secundary_t *secundary, int cod);
-
 /**
  * inicializa um nó de índices secundarios
  * @param node necessariamente não inicializada
@@ -133,23 +112,21 @@ void initSecundaryNode(secundary_node_t *node);
 
 /**
  * cria um novo índice secundário
- * @param db             previamente inicializada
- * @param secundary      previamente inicializada
- * @param cod            cod do novo índice
- * @param id             id que apontará o índice
- * @param file_principal nome do arquivo principal de índice secundário
- * @param file_list      novo do arquivo que contem a lista reversa do índice secundário
+ * @param db        previamente inicializada
+ * @param secundary previamente inicializada
+ * @param cod       cod do novo índice
+ * @param id        id que apontará o índice
+ * @param file_name nome do arquivo principal de índice secundário
  */
-void newSecundaryIdx(database_t *db, secundary_t *secundary, int cod, id_type id, char *file_principal, char *file_list);
+void newSecundaryIdx(database_t *db, secundary_t *secundary, int cod, id_type id, char *file_name);
 
 /**
  * carrega para a memória RAM um índice secundário
- * @param db             previamente inicializada
- * @param secundary      não necessariamente inicializada, será alterada
- * @param file_principal nome do arquivo principal de índice secundário
- * @param file_list      novo do arquivo que contem a lista reversa do índice secundário
+ * @param db        previamente inicializada
+ * @param secundary não necessariamente inicializada, será alterada
+ * @param file_name nome do arquivo principal de índice secundário
  */
-void loadSecundaryIdx(database_t *db, secundary_t *secundary, char *file_principal, char *file_list);
+void loadSecundaryIdx(database_t *db, secundary_t *secundary, char *file_name);
 
 /**
  * libera um índice secundário
