@@ -7,7 +7,7 @@
 #include "misc.h"
 #include "registro.h"
 
-// troca as funcoes cruciais
+// funções do misc
 #define malloc _malloc
 #define realloc _realloc
 

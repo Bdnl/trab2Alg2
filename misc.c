@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 #include "misc.h"
 
-// 08.05.2015
+// 20.05.2015
 
 // getchar que não deixa enter no buffer
 char _getchar() {
@@ -97,6 +97,14 @@ FILE *_fopen(char *filename, char *mode) {
 		exit(1);
 	}
 	return result;
+}
+
+// funcao fclose que testa se o ponteiro é nulo
+int _fclose(FILE *stream) {
+	if(stream == NULL) {
+		return ;
+	}
+	return fclose(stream);
 }
 
 // funcao que retorna o tamanho de um arquivo

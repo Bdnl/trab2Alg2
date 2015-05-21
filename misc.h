@@ -10,6 +10,7 @@ double _scanf_double(); // scanf que retorna um double
 void *_malloc(size_t size); // funcao malloc que fecha o programa assim que não há mais memória livre
 void *_calloc(size_t count, size_t size); // funcao calloc que fecha o programa assim que não há mais memória livre
 void *_realloc(void *ptr, size_t new_size); // funcao realloc que fecha o programa assim que não há mais memória livre
+int _fclose(FILE *stream); // funcao fclose que testa se o ponteiro é nulo
 FILE *_fopen(char *filename, char *mode); // funcao fopen que fecha o programa se fopen retornar NULL
 long int _file_size(FILE *file); // funcao que retorna o tamanho de um arquivo
 
