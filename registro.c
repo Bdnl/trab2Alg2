@@ -439,6 +439,14 @@ void generosStrToCod(database_t *db, char *str) {
 	#ifdef DEBUG
 		printf("Convertendo a string para cod '%s'", str);
 	#endif // DEBUG
+	// caso especial unknown
+	if(strcmp(str, "unknown") == 0) {
+		#ifdef DEBUG
+			puts("");
+		#endif // DEBUG
+		str[0] = 0; // o conteudo da str
+		return ;
+	}
 	int i = 0;
 	int num_generos = 0;
 	while(str[i]) {
@@ -469,4 +477,52 @@ void generosStrToCod(database_t *db, char *str) {
 	#ifdef DEBUG
 		printfVerticaly(str);
 	#endif // DEBUG
+}
+
+/**
+ * Converte Cod para uma string
+ * @param  db  inicializado previamente
+ * @param  cod código do genero
+ * @param  str string para ser copiado
+ * @return     strlen(str)
+ */
+uint generoCodToStr(database_t *db, genero_t cod, char *str) {
+	genero_table_t *table = &db->genero_table;
+	int i;
+	for(i=0; i<table->num_node; i++) {
+		// procura na tabela todos os códigos
+		if(table->nodes[i].cod == cod) {
+			// genero encontrado
+			strcpy(str, table->nodes[i].str);
+			return strlen(table->nodes[i].str);
+		}
+	}
+	return 0;
+}
+
+/**
+ * converte de código para string com arrobas
+ * @param db  inicializado previamente
+ * @param str string com códigos dos generos
+ */
+void generosCodToStr(database_t *db, char *str) {
+	// caso especial unknown
+	if(str[0] == 0) {
+		strcpy(str, "unknown");
+		return ;
+	}
+	// buffer para armazenar temporarimente str
+	char buffer[GENSIZE];
+	strcpy(buffer, str);
+	// varre todos os generos do usuário
+	int i = 0;
+	while(buffer[i]) {
+		// anda com str ao msmo tempo que copia
+		str += generoCodToStr(db, buffer[i], str);
+		*str = '@';
+		str++;
+		i++;
+	}
+	str--;
+	*str = '\0';
 }

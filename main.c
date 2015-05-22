@@ -11,11 +11,12 @@
 
 int main(int argc, char *argv[]) {
 	#ifdef DEBUG
-		registro_t reg_new = {1, "Nome", 20, 'M', "Nova MPB@Pagode@Axe", 1};
+		registro_t reg_new = {1, "Nome", 20, 'M', "Rock@Pagode@MPB", 1};
 		database_t db;
 		initDB(&db);
 		generosStrToCod(&db, reg_new.generos);
-		novoRegistro(&db, &reg_new);
+		generosCodToStr(&db, reg_new.generos);
+		printf("%s\n", reg_new.generos);
 		closeDB(&db);
 	#endif // DEBUG
 	return 0;
