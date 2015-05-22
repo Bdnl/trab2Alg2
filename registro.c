@@ -117,6 +117,7 @@ offset_t novoRegistro(database_t *db, registro_t *reg) {
  * @return     a pos~ição do primeiro byte do registro ou EOF caso erro
  */
 offset_t lerRegistro(database_t *db, registro_t *reg) {
+	FILE *fd = db->file_db;
 	int regsize = fgetc(fd);
 	if(regsize == EOF) {
 		// não há mais registros no arquivos
