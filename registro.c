@@ -117,7 +117,6 @@ offset_t novoRegistro(database_t *db, registro_t *reg) {
  * @return     a pos~ição do primeiro byte do registro ou EOF caso erro
  */
 offset_t lerRegistro(database_t *db, registro_t *reg) {
-	FILE *fd = abrirArquivoDB(db, "r");
 	int regsize = fgetc(fd);
 	if(regsize == EOF) {
 		// não há mais registros no arquivos
@@ -130,7 +129,6 @@ offset_t lerRegistro(database_t *db, registro_t *reg) {
 	fread(buffer, sizeof(char), regsize, fd);
 	bufferToReg(buffer, reg);
 	free(buffer);
-	fecharArquivoDB(db);
 	return result;
 }
 
@@ -205,6 +203,7 @@ genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
 	// vetor com a quantidade de pessoas que escuta determinado genero
 	int escutam[GENSIZE] = {0};
 	registro_t reg;
+	abrirArquivoDB(db, "r");
 	while(lerRegistro(db, &reg) != EOF) {
 		if(reg.idade < ini || reg.idade > fim) {
 			// pula os registros fora de idade
@@ -217,6 +216,7 @@ genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
 			i++;
 		}
 	}
+	fecharArquivoDB(db);
 	// define que os dez maiores sao os dez primeiros
 	int i;
 	for(i=0; i<10; i++) {
@@ -266,6 +266,7 @@ id_type *usariosPorGenero(database_t *db, genero_t genero, idade_t idade_ini, id
 	abrirArquivoDB(db, "r");
 	registro_t reg;
 	int result_size = 0;
+	abrirArquivoDB(db, "r");
 	while(lerRegistro(db, &reg) != EOF) {
 		if(regCurteGenero(&reg, genero) && reg.idade >= idade_ini && reg.idade <= idade_fim) {
 			result = _realloc(result, sizeof(id_type) * (result_size + 1));
@@ -273,6 +274,7 @@ id_type *usariosPorGenero(database_t *db, genero_t genero, idade_t idade_ini, id
 			result_size++;
 		}
 	}
+	fecharArquivoDB(db);
 	result = _realloc(result, sizeof(id_type) * (result_size + 1));
 	result[result_size] = 0;
 	result_size++;
@@ -298,6 +300,7 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	// vetor com a quantidade de pessoas que escuta determinado genero
 	int escutam[GENSIZE] = {0};
 	registro_t reg;
+	abrirArquivoDB(db, "r");
 	while(lerRegistro(db, &reg) != EOF) {
 		// variavel que diz se o while debaixo deu break
 		bool breaked = false;
@@ -321,6 +324,7 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 			i++;
 		}
 	}
+	fecharArquivoDB(db);
 	// define que os 3 maiores sao os 3 primeiros
 	int i;
 	for(i=0; i<3; i++) {
