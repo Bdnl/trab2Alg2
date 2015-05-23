@@ -168,6 +168,7 @@ bool removerRegistro(database_t *db, id_type id) {
 	fputc('*', fd);
 
 	//Remove o arquivo de índex primário (memória e arquivo)
+	idx = abrirArquivoIdx(db, "r+b");
 	for(i = 0; i < db->num_id; i++) {
 		if (db->idx_id[i].id == id) {
 			db->idx_id[i].id = 0; //apaga na memória
