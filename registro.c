@@ -7,10 +7,6 @@
 #include "misc.h"
 #include "registro.h"
 
-// funções do misc
-#define malloc _malloc
-#define realloc _realloc
-
 /**
  * converte de registro_t para uma string
  * @param  reg    previamente inicializado
@@ -117,7 +113,7 @@ offset_t novoRegistro(database_t *db, registro_t *reg) {
  * @return     a pos~ição do primeiro byte do registro ou EOF caso erro
  */
 offset_t lerRegistro(database_t *db, registro_t *reg) {
-	FILE *fd = abrirArquivoDB(db, "r");
+	FILE *fd = db->file_db;
 	int regsize = fgetc(fd);
 	if(regsize == EOF) {
 		// não há mais registros no arquivos
@@ -130,7 +126,6 @@ offset_t lerRegistro(database_t *db, registro_t *reg) {
 	fread(buffer, sizeof(char), regsize, fd);
 	bufferToReg(buffer, reg);
 	free(buffer);
-	fecharArquivoDB(db);
 	return result;
 }
 
@@ -153,12 +148,14 @@ offset_t pesquisarRegistro(database_t *db, id_type id) {
 }
 
 /**
- * remove o registro tanto em memória, quanto no arquivo
+ * remove o registro tanto em memória, quanto no arquivo principal e nos de índex
  * @param  db previamente inicializada
  * @param  id do registro que será removido
  * @return    true caso seja verdadeiro
  */
 bool removerRegistro(database_t *db, id_type id) {
+
+	int i;
 	// opcao 2
 	FILE *fd = abrirArquivoDB(db, "r+");
 	offset_t pos = pesquisarRegistro(db, id);
@@ -168,6 +165,52 @@ bool removerRegistro(database_t *db, id_type id) {
 	fseek(fd, pos, SEEK_SET);
 	// insere o * indicando q o registro está apagado
 	fputc('*', fd);
+
+	//Remove nos arquivos de índex (memória e arquivo)
+	abrirArquivoIdx(db, "r+b");
+	abrirArquivoGeneros(db, "r+b");
+	abrirArquivoIdade(db, "r+b");
+
+	for(i = 0; i < db->num_id; i++) {
+		if (db->idx_id[i].id == id) {
+			//Apaga na memória
+			db->idx_id[i].id = 0; 
+
+			//Apaga no arquivo de índex primário
+			fseek(db->file_id, (i - 1) * sizeof(idx_id_t), SEEK_SET);
+			fwrite(db->idx_id + i, sizeof(idx_id_t), 1, db->file_id);
+			break;
+		}
+	}
+
+	//Remove o arquivo de índex secundário de gênero (memória e arquivo)
+	for (i = 0; i < db->idx_genero.num_node; i++) {
+		if(db->idx_genero.nodes[i].id == id) {	
+			//Apaga na memória
+			db->idx_genero.nodes[i].id = 0;
+
+			//Apaga no arquivo de gênero
+			fseek(db->file_generos, (i - 1) * sizeof(secundary_node_t), SEEK_SET);
+			fwrite(db->idx_genero.nodes + i, sizeof(secundary_node_t), 1, db->file_generos);
+		}
+	}
+
+	//Remove o arquivo de índex secundário de idade (memória e arquivo)
+	for (i = 0; i < db->idx_idade.num_node; i++) {
+		if(db->idx_idade.nodes[i].id == id) {	
+			//Apaga na memória
+			db->idx_idade.nodes[i].id = 0;
+
+			//Apaga no arquivo de idade
+			fseek(db->file_idade, (i - 1) * sizeof(secundary_node_t), SEEK_SET);
+			fwrite(db->idx_idade.nodes + i, sizeof(secundary_node_t), 1, db->file_idade);
+		}
+	}
+
+
+	fecharArquivoIdx(db);
+	fecharArquivoGeneros(db);
+	fecharArquivoIdade(db);
 	fecharArquivoDB(db);
 	return true;
 }
@@ -201,10 +244,11 @@ bool regCurteGenero(registro_t *reg, genero_t genero) {
  */
 genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
 	// opcao 6
-	genero_t *result = malloc(10 * sizeof(genero_t));
+	genero_t *result = calloc(10, sizeof(genero_t));
 	// vetor com a quantidade de pessoas que escuta determinado genero
 	int escutam[GENSIZE] = {0};
 	registro_t reg;
+	abrirArquivoDB(db, "r");
 	while(lerRegistro(db, &reg) != EOF) {
 		if(reg.idade < ini || reg.idade > fim) {
 			// pula os registros fora de idade
@@ -217,6 +261,7 @@ genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
 			i++;
 		}
 	}
+	fecharArquivoDB(db);
 	// define que os dez maiores sao os dez primeiros
 	int i;
 	for(i=0; i<10; i++) {
@@ -266,6 +311,7 @@ id_type *usariosPorGenero(database_t *db, genero_t genero, idade_t idade_ini, id
 	abrirArquivoDB(db, "r");
 	registro_t reg;
 	int result_size = 0;
+	abrirArquivoDB(db, "r");
 	while(lerRegistro(db, &reg) != EOF) {
 		if(regCurteGenero(&reg, genero) && reg.idade >= idade_ini && reg.idade <= idade_fim) {
 			result = _realloc(result, sizeof(id_type) * (result_size + 1));
@@ -273,6 +319,7 @@ id_type *usariosPorGenero(database_t *db, genero_t genero, idade_t idade_ini, id
 			result_size++;
 		}
 	}
+	fecharArquivoDB(db);
 	result = _realloc(result, sizeof(id_type) * (result_size + 1));
 	result[result_size] = 0;
 	result_size++;
@@ -285,12 +332,12 @@ id_type *usariosPorGenero(database_t *db, genero_t genero, idade_t idade_ini, id
  * os 3 generos mais populares entres as pessoas que curtem os generos do parametro
  * @param  db      previamente inicializada
  * @param  generos generos deve ser algo como [1, 2, 3, 4, 0], o ultimo valor é sempre 0
- * @return         é algo como [1, 2, 0], ler até o zero ou 3 elementos
+ * @return         é algo como [1, 2, 3, 0], DEVE LER ATÉ O 0, não necessariamente tem 3 elementos
  */
 genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	// opcao 4
-	// mto parecida com a opcao 4
-	genero_t *result = malloc(3 * sizeof(genero_t));
+	// mto parecida com a opcao 5
+	genero_t *result = calloc(4, sizeof(genero_t));
 	if(generos[0] == 0) {
 		// vetor de generos esta vazio
 		return result;
@@ -298,6 +345,7 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	// vetor com a quantidade de pessoas que escuta determinado genero
 	int escutam[GENSIZE] = {0};
 	registro_t reg;
+	abrirArquivoDB(db, "r");
 	while(lerRegistro(db, &reg) != EOF) {
 		// variavel que diz se o while debaixo deu break
 		bool breaked = false;
@@ -321,6 +369,7 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 			i++;
 		}
 	}
+	fecharArquivoDB(db);
 	// define que os 3 maiores sao os 3 primeiros
 	int i;
 	for(i=0; i<3; i++) {
@@ -328,7 +377,7 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	}
 	// posicao do genero menos curtido em result
 	int menos_curtido = 0;
-	for(i=1; i<3; i++) {
+	for(i=1; i<=3; i++) {
 		if(escutam[i] < escutam[menos_curtido]) {
 			menos_curtido = i;
 		}
@@ -343,12 +392,16 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 		menos_curtido = 0;
 		// reencontra o menos curtido
 		int j;
-		for(j=1; j<3; j++) {
+		for(j=1; j<=3; j++) {
 			if(escutam[j] < escutam[menos_curtido]) {
 				menos_curtido = j;
 			}
 		}
 		i++;
+	}
+	// altera o vetor resultado
+	for(i=1; i<=3; i++) {
+		result[i-1] = escutam[i];
 	}
 	return result;
 }
@@ -363,32 +416,34 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 id_type *usuariosMaisJovems(database_t *db, genero_t *generos, tu_t tu) {
 	// opcao 5
 	idade_t idades[10];
-	id_type *result = malloc(10 * sizeof(id_type));
-	// preenche tudo com 0
-	memset(result, 0, 10);
-	registro_t reg;
+	id_type *result = calloc(10, sizeof(id_type));
 	FILE *fd = abrirArquivoDB(db, "r");
 	if(_file_size(fd) == 0) {
 		// o arquivo esta vazio
 		return result;
 	}
+	fecharArquivoDB(db);
 	int i = 0;
 	// preenche as 10 primeiras idades
-	while(lerRegistro(db, &reg) != EOF && i < 10) {
-		result[i] = reg.id;
-		idades[i] = reg.idade;
+	int num_id = db->num_id;
+	while(i < 10 || i < num_id) {
+		idades[i] = db->idx_idade.nodes[i].cod;
+		result[i] = db->idx_idade.nodes[i].id;
 		i++;
 	}
-	while(lerRegistro(db, &reg) != EOF) {
-		for(i=0; i<10; i++) {
-			if(reg.idade < idades[i]) {
-				idades[i] = reg.idade;
-				result[i] = reg.id;
+	// varre os demais registros
+	while(i < num_id) {
+		int j;
+		// testa as 10 idades, se alguma é menor do que a q está sendo analisada
+		for(j=0; j<10; j++) {
+			if(db->idx_idade.nodes[i].cod < idades[j]) {
+				idades[j] = db->idx_idade.nodes[i].cod;
+				result[j] = db->idx_idade.nodes[i].id;
 				break;
 			}
 		}
+		i++;
 	}
-	fecharArquivoDB(db);
 	return result;
 }
 
@@ -439,6 +494,14 @@ void generosStrToCod(database_t *db, char *str) {
 	#ifdef DEBUG
 		printf("Convertendo a string para cod '%s'", str);
 	#endif // DEBUG
+	// caso especial unknown
+	if(strcmp(str, "unknown") == 0) {
+		#ifdef DEBUG
+			puts("");
+		#endif // DEBUG
+		str[0] = 0; // o conteudo da str
+		return ;
+	}
 	int i = 0;
 	int num_generos = 0;
 	while(str[i]) {
@@ -469,4 +532,52 @@ void generosStrToCod(database_t *db, char *str) {
 	#ifdef DEBUG
 		printfVerticaly(str);
 	#endif // DEBUG
+}
+
+/**
+ * Converte Cod para uma string
+ * @param  db  inicializado previamente
+ * @param  cod código do genero
+ * @param  str string para ser copiado
+ * @return     strlen(str)
+ */
+uint generoCodToStr(database_t *db, genero_t cod, char *str) {
+	genero_table_t *table = &db->genero_table;
+	int i;
+	for(i=0; i<table->num_node; i++) {
+		// procura na tabela todos os códigos
+		if(table->nodes[i].cod == cod) {
+			// genero encontrado
+			strcpy(str, table->nodes[i].str);
+			return strlen(table->nodes[i].str);
+		}
+	}
+	return 0;
+}
+
+/**
+ * converte de código para string com arrobas
+ * @param db  inicializado previamente
+ * @param str string com códigos dos generos
+ */
+void generosCodToStr(database_t *db, char *str) {
+	// caso especial unknown
+	if(str[0] == 0) {
+		strcpy(str, "unknown");
+		return ;
+	}
+	// buffer para armazenar temporarimente str
+	char buffer[GENSIZE];
+	strcpy(buffer, str);
+	// varre todos os generos do usuário
+	int i = 0;
+	while(buffer[i]) {
+		// anda com str ao msmo tempo que copia
+		str += generoCodToStr(db, buffer[i], str);
+		*str = '@';
+		str++;
+		i++;
+	}
+	str--;
+	*str = '\0';
 }

@@ -7,9 +7,12 @@
 #include <time.h>
 #include <unistd.h>
 #include <sys/stat.h>
+
+// define para dizer que este é o arquivo principal
+#define __MISC_C__
 #include "misc.h"
 
-// 20.05.2015
+// 23.05.2015
 
 // getchar que não deixa enter no buffer
 char _getchar() {

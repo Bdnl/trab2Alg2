@@ -9,6 +9,7 @@
 #include "misc.h"
 #include "database.h"
 
+<<<<<<< HEAD
 /**
  * Títulos das páginas
  * @param subtitulo:	string com o subtítulo da página

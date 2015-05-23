@@ -1,5 +1,5 @@
 CC=gcc
-FLAGS=
+FLAGS=-DDEBUG
 CFLAGS=-c $(FLAGS)
 LDFLAGS=$(FLAGS)
 SOURCES=main.c misc.c registro.c database.c

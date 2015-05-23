@@ -1,8 +1,6 @@
 #ifndef __DATABASE_H__
 #define __DATABASE_H__
 
-#define DEBUG
-
 #define DBFILENAME "db.dat"
 #define IDXFILENAME "idx.dat"
 #define IDADEFILENAME "idade.dat"

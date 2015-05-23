@@ -27,4 +27,11 @@ void show_cursor(); // mostra o cursor dps de escondido
 float timediff(bool starthere); // devolve em segundos o tempo passado de starthere = true e starthere = false
 int printfVerticaly(char *str); // funcao boa para debug, imprime strings verticalmente
 
+// troca as funções de alocação de memória, menos no arquivo .c
+#ifndef __MISC_C__
+	#define malloc _malloc
+	#define realloc _realloc
+	#define calloc _calloc
+#endif
+
 #endif
