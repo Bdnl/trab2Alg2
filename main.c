@@ -9,7 +9,6 @@
 #include "misc.h"
 #include "database.h"
 
-<<<<<<< HEAD
 /**
  * Títulos das páginas
  * @param subtitulo:	string com o subtítulo da página
@@ -91,7 +90,7 @@ int teste_tu(char *eh_valido){
  * @param db:	ponteiro para database
 */
 void menu_1(database_t *db){
-	registro_t new_reg;
+	registro_t new_reg;	//Novo registro
 	char eh_valido[15];	//Recebe variáveis que precisa testar a validade
 	char ok = 1; 		//Se =1 ao final da função, todos os dados estão dentro do padrão esperado 
 
@@ -142,10 +141,6 @@ void menu_1(database_t *db){
 		printf("Tipo do usuário em formato inválido.\n");
 		ok = 0;
 	}
-
-	printf("Ok: %d\n", ok);
-	printf("|%d|%s|%d|%c|%s|%d|\n", new_reg.id, new_reg.nome, new_reg.idade, new_reg.sexo, new_reg.generos, new_reg.tu);
-	system_pause();
 
 	//Confere se algum campo era inválido
 	if(!ok){
@@ -259,9 +254,9 @@ void menu_3(database_t *db){
  * @param db:	ponteiro para database
 */
 void menu_4(database_t *db){
-	genero_t generos_pesq[GENSIZE]; //Lista de gêneros a serem pesquisados
-	genero_t *generos_cod_result; //Lista de códigos de gêneros resultados da pesquisa
-	char generos_result[GENSIZE]; //String com os gêneros resultados da pesquisa
+	genero_t generos_pesq[GENSIZE];	//Lista de gêneros a serem pesquisados
+	genero_t *generos_cod_result; 	//Lista de códigos de gêneros resultados da pesquisa
+	char generos_result[GENSIZE]; 	//String com os gêneros resultados da pesquisa
 
 	titulo("Buscar gostos musicais semelhantes");
 
@@ -278,11 +273,7 @@ void menu_4(database_t *db){
 	generos_cod_result = generosPopularesGenero(db, generos_pesq);
 
 	//A imformação é passada de generos_cod_result para generos_result
-	generos_result[0] = generos_cod_result[0];
-	generos_result[1] = generos_cod_result[1];
-	generos_result[2] = generos_cod_result[2];
-	generos_result[3] = '\0';
-	//strcpy(generos_result, generos_cod_result);
+	strcpy(generos_result, generos_cod_result);
 	free(generos_cod_result);	//Malloc foi feito na função generosPopularesGenero
 	
 	//Transforma o vetor de códigos na string dos gêneros e imprime
@@ -323,6 +314,7 @@ void menu_5(database_t *db){
 		return;
 
 	//Lê o tipo de usuário
+	printf("Tipo de usuário:");
 	_scanf_s(eh_valido, 10);
 	if(teste_tu(eh_valido))
 		tu_pesq = atoi(eh_valido);
@@ -335,29 +327,128 @@ void menu_5(database_t *db){
 	//Transforma a string dos gêneros em um vetor de códigos
 	generosStrToCod(db, generos_pesq);
 
+	//Busca os usuários mais jovens
 	id_result = usuariosMaisJovems(db, generos_pesq, tu_pesq);
 
+	//Imprime os IDs
+	printf("\nIDs:\n");
 	int i = 0;
 	while(id_result[i]){
 		printf("%d\n", id_result[i]);
 		i++;
 	}
 
-	free(id_result);
+	free(id_result); //Malloc feito na função usuariosMaisJovens
 	system_pause();
 	return;
 }
 
-/*typedef struct {
-	id_type id;
-	char nome[NOMESIZE];
-	idade_t idade;
-	sexo_t sexo;
-	// generos é um vetor, o último elemento é sempre 0 indicando o final do vetor
-	// portanto, ele age como uma string
-	genero_t generos[GENSIZE];
-	tu_t tu;
-} registro_t;*/
+/**
+ * Menu "Buscar gêneros mais populares"
+ * @param db:	ponteiro para database
+*/
+void menu_6(database_t *db){
+	char eh_valido1[10], eh_valido2[10];	//Recebe as idades para testar a validade
+	idade_t idade_min, idade_max; 			//Idades mínima e máxima para a busca
+	genero_t *generos_cod_result; 			//Lista de códigos de gêneros resultados da pesquisa
+	char generos_result[GENSIZE]; 			//String com os gêneros resultados da pesquisa
+
+	titulo("Buscar gêneros mais populares");
+
+	//Lê e valida as idades mínima e máxima
+	printf("Idade mínima:");
+	_scanf_s(eh_valido1, 10);
+	printf("Idade máxima:");
+	_scanf_s(eh_valido2, 10);
+
+	if(teste_idade(eh_valido1) && teste_idade(eh_valido2)){
+		idade_min = atoi(eh_valido1);
+		idade_max = atoi(eh_valido2);
+	}else{
+		printf("Falha: Idade em formato inválido.\n");
+		system_pause();
+		return;
+	}
+
+	//Busca
+	generos_cod_result = generosPopularesIdade(db, idade_min, idade_max);
+
+	//A imformação é passada de generos_cod_result para generos_result
+	strcpy(generos_result, generos_cod_result);
+	free(generos_cod_result);	//Malloc foi feito na função generosPopularesIdade
+	
+	//Transforma o vetor de códigos na string dos gêneros e imprime
+	generosCodToStr(db, generos_result);
+	
+	//Imprime uma gênero por linha
+	printf("\nResultado:\n");
+	int i=0;
+	while(generos_result[i]){
+		if(generos_result[i] != '@')
+			putchar(generos_result[i]);
+		else
+			putchar('\n');
+		i++;
+	}
+	putchar('\n');
+
+	system_pause();
+
+	return;
+}
+
+/**
+ * Menu "Buscar usuários por idade e gênero"
+ * @param db:	ponteiro para database
+*/
+void menu_7(database_t *db){
+	char eh_valido1[10], eh_valido2[10];	//Recebe as idades para testar a validade
+	idade_t idade_min, idade_max; 			//Idades mínima e máxima para a busca
+	genero_t genero_pesq[GENSIZE];			//Gênero a ser pesquisado
+	id_type *id_result; 					//Ponteiro para o vetor de IDs resultados da pesquisa
+	
+	titulo("Buscar usuários por idade e gênero");
+
+	//Lê e valida as idades mínima e máxima
+	printf("Idade mínima:");
+	_scanf_s(eh_valido1, 10);
+	printf("Idade máxima:");
+	_scanf_s(eh_valido2, 10);
+
+	if(teste_idade(eh_valido1) && teste_idade(eh_valido2)){
+		idade_min = atoi(eh_valido1);
+		idade_max = atoi(eh_valido2);
+	}else{
+		printf("Falha: Idade em formato inválido.\n");
+		system_pause();
+		return;
+	}
+
+	//Lê a string de gêneros
+	printf("Gêneros:");
+	_scanf_s(genero_pesq, GENSIZE);
+	if(genero_pesq[0] == '\0')			
+		return;
+
+	//Transforma a string dos gêneros em um vetor de códigos
+	generosStrToCod(db, genero_pesq);
+
+	//Busca
+	//Obs: É usada apenas a primeira posição do vetor genero_pesq
+	id_result = usariosPorGenero(db, (*genero_pesq), idade_min, idade_max);	
+
+	//Imprime os IDs
+	printf("\nIDs:\n");
+	int i = 0;
+	while(id_result[i]){
+		printf("%d\n", id_result[i]);
+		i++;
+	}
+
+	free(id_result); //Malloc feito na função usuariosPorGenero
+	system_pause();
+	return;
+}
 
 /**
  * Menu principal do programa, no qual o usuário pode escolher a operação a ser realizada
@@ -377,7 +468,7 @@ int menu_principal(database_t *db){
 	printf("4. Buscar gostos musicais semelhantes\n");
 	printf("5. Buscar usuários mais jovens\n");
 	printf("6. Buscar gêneros mais populares\n");
-	printf("7. Buscar usuários de uma faixa de idade que gostam de um determinado gênero\n");
+	printf("7. Buscar usuários por idade e gênero\n");
 	printf("8. Fechar o programa\n");
 
 	//opcao recebe a escolha do usuário
@@ -401,8 +492,10 @@ int menu_principal(database_t *db){
 			menu_5(db);
 			return 1;
 		case '6':
+			menu_6(db);
 			return 1;
 		case '7':
+			menu_7(db);
 			return 1;
 		case '8':		//Ao retornar 0, sai do while na main
 			return 0;
@@ -415,7 +508,7 @@ int main(void){
 	//Declara e inicia database 
 	database_t db;
 	initDB(&db);
-	printf("Size: %d\n", sizeof(uint8_t));
+	
 	//Loop do Menu Principal
 	while(menu_principal(&db));
 
