@@ -29,7 +29,7 @@ void initDB(database_t *db) {
 	db->num_id = _file_size(fd) / sizeof(idx_id_t);
 	if(db->num_id == 0) {
 		// não foi inserido nenhum arquivo por enquanto, não há necessidade de carregar conteúdos em RAM
-		return ;
+		return;
 	}
 	db->idx_id = malloc(db->num_id * sizeof(idx_id_t));
 	fread(db->idx_id, sizeof(idx_id_t), db->num_id, fd);
