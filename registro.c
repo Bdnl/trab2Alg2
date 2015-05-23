@@ -180,15 +180,14 @@ bool removerRegistro(database_t *db, id_type id) {
 			db->idx_idade.nodes[i].id = 0;
 
 			//Apaga nos arquivos de índex
-			fseek(db->file_id, ((i - 1) * sizeof(idx_id_t)), SEEK_SET); //primário
-			fwrite(&(db->idx_id[i]), sizeof(idx_id_t), 1, db->file_id);
+			fseek(db->file_id, (i - 1) * sizeof(idx_id_t), SEEK_SET); //primário
+			fwrite(db->idx_id + i, sizeof(idx_id_t), 1, db->file_id);
 
-			fseek(db->file_generos, ((i - 1) * sizeof(secundary_node_t)), SEEK_SET); //gênero
-			fwrite(&(db->idx_genero.nodes[i]), sizeof(secundary_node_t), 1, db->file_generos);
+			fseek(db->file_generos, (i - 1) * sizeof(secundary_node_t), SEEK_SET); //gênero
+			fwrite(db->idx_genero.nodes + i, sizeof(secundary_node_t), 1, db->file_generos);
 
-			fseek(db->file_idade, ((i - 1) * sizeof(secundary_node_t)), SEEK_SET); //idade
-			fwrite(&(db->idx_idade.nodes[i]), sizeof(secundary_node_t), 1, db->file_idade);
-
+			fseek(db->file_idade, (i - 1) * sizeof(secundary_node_t), SEEK_SET); //idade
+			fwrite(db->idx_idade.nodes + i, sizeof(secundary_node_t), 1, db->file_idade);
 		}
 	}
 	//Remove o arquivo de índex secundário de gênero (memória e arquivo)
