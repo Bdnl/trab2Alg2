@@ -377,7 +377,7 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	}
 	// posicao do genero menos curtido em result
 	int menos_curtido = 0;
-	for(i=1; i<3; i++) {
+	for(i=1; i<=3; i++) {
 		if(escutam[i] < escutam[menos_curtido]) {
 			menos_curtido = i;
 		}
