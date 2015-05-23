@@ -288,12 +288,12 @@ id_type *usariosPorGenero(database_t *db, genero_t genero, idade_t idade_ini, id
  * os 3 generos mais populares entres as pessoas que curtem os generos do parametro
  * @param  db      previamente inicializada
  * @param  generos generos deve ser algo como [1, 2, 3, 4, 0], o ultimo valor é sempre 0
- * @return         é algo como [1, 2, 0], ler até o zero ou 3 elementos
+ * @return         é algo como [1, 2, 3, 0], DEVE LER ATÉ O 0, não necessariamente tem 3 elementos
  */
 genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	// opcao 4
-	// mto parecida com a opcao 4
-	genero_t *result = malloc(3 * sizeof(genero_t));
+	// mto parecida com a opcao 5
+	genero_t *result = calloc(4, sizeof(genero_t));
 	if(generos[0] == 0) {
 		// vetor de generos esta vazio
 		return result;
