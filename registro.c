@@ -175,21 +175,37 @@ bool removerRegistro(database_t *db, id_type id) {
 		if (db->idx_id[i].id == id) {
 			//Apaga na memória
 			db->idx_id[i].id = 0; 
-			db->idx_genero.nodes[i].id = 0;
-			db->idx_idade.nodes[i].id = 0;
 
-			//Apaga nos arquivos de índex
-			fseek(db->file_id, (i - 1) * sizeof(idx_id_t), SEEK_SET); //primário
+			//Apaga no arquivo de índex primário
+			fseek(db->file_id, (i - 1) * sizeof(idx_id_t), SEEK_SET);
 			fwrite(db->idx_id + i, sizeof(idx_id_t), 1, db->file_id);
-
-			fseek(db->file_generos, (i - 1) * sizeof(secundary_node_t), SEEK_SET); //gênero
-			fwrite(db->idx_genero.nodes + i, sizeof(secundary_node_t), 1, db->file_generos);
-
-			fseek(db->file_idade, (i - 1) * sizeof(secundary_node_t), SEEK_SET); //idade
-			fwrite(db->idx_idade.nodes + i, sizeof(secundary_node_t), 1, db->file_idade);
+			break;
 		}
 	}
+
 	//Remove o arquivo de índex secundário de gênero (memória e arquivo)
+	for (i = 0; i < db->idx_genero.num_node; i++) {
+		if(db->idx_genero.nodes[i].id == id) {	
+		//Apaga na memória
+		db->idx_genero.nodes[i].id = 0;
+
+		//Apaga no arquivo de gênero
+		fseek(db->file_generos, (i - 1) * sizeof(secundary_node_t), SEEK_SET);
+		fwrite(db->idx_genero.nodes + i, sizeof(secundary_node_t), 1, db->file_generos);
+		}
+	}
+
+	//Remove o arquivo de índex secundário de idade (memória e arquivo)
+	for (i = 0; i < db->idx_idade.num_node; i++) {
+		if(db->idx_idade.nodes[i].id == id) {	
+		//Apaga na memória
+		db->idx_idade.nodes[i].id = 0;
+
+		//Apaga no arquivo de idade
+		fseek(db->file_idade, (i - 1) * sizeof(secundary_node_t), SEEK_SET);
+		fwrite(db->idx_idade.nodes + i, sizeof(secundary_node_t), 1, db->file_idade);
+		}
+	}
 
 
 	fecharArquivoIdx(db);
