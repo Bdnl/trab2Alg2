@@ -148,12 +148,15 @@ offset_t pesquisarRegistro(database_t *db, id_type id) {
 }
 
 /**
- * remove o registro tanto em memória, quanto no arquivo
+ * remove o registro tanto em memória, quanto no arquivo principal e nos de índex
  * @param  db previamente inicializada
  * @param  id do registro que será removido
  * @return    true caso seja verdadeiro
  */
 bool removerRegistro(database_t *db, id_type id) {
+
+	offset_t posIdx;
+	int i;
 	// opcao 2
 	FILE *fd = abrirArquivoDB(db, "r+");
 	offset_t pos = pesquisarRegistro(db, id);
@@ -163,6 +166,17 @@ bool removerRegistro(database_t *db, id_type id) {
 	fseek(fd, pos, SEEK_SET);
 	// insere o * indicando q o registro está apagado
 	fputc('*', fd);
+
+	//Remove o arquivo de índex primário (memória e arquivo)
+	for(i = 0; i < db->num_id; i++) {
+		if (db->idx_id[i].id == id) {
+			db->idx_id[i].id = 0; //apaga na memória
+
+			fseek(db->file_id, ((i - 1) * sizeof(idx_id_t)), SEEK_SET); //Apaga no arquivo de índex
+			fwrite(&(db->idx_id[i]), sizeof(idx_id_t), 1, db->file_id);
+		}
+	}
+
 	fecharArquivoDB(db);
 	return true;
 }
