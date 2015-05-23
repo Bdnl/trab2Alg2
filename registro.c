@@ -7,10 +7,6 @@
 #include "misc.h"
 #include "registro.h"
 
-// funções do misc
-#define malloc _malloc
-#define realloc _realloc
-
 /**
  * converte de registro_t para uma string
  * @param  reg    previamente inicializado
@@ -200,7 +196,7 @@ bool regCurteGenero(registro_t *reg, genero_t genero) {
  */
 genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
 	// opcao 6
-	genero_t *result = malloc(10 * sizeof(genero_t));
+	genero_t *result = calloc(10, sizeof(genero_t));
 	// vetor com a quantidade de pessoas que escuta determinado genero
 	int escutam[GENSIZE] = {0};
 	registro_t reg;
@@ -368,9 +364,7 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 id_type *usuariosMaisJovems(database_t *db, genero_t *generos, tu_t tu) {
 	// opcao 5
 	idade_t idades[10];
-	id_type *result = malloc(10 * sizeof(id_type));
-	// preenche tudo com 0
-	memset(result, 0, 10);
+	id_type *result = calloc(10, sizeof(id_type));
 	registro_t reg;
 	FILE *fd = abrirArquivoDB(db, "r");
 	if(_file_size(fd) == 0) {

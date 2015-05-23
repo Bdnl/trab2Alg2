@@ -9,9 +9,6 @@
 // funções do misc
 #define fopen _fopen
 #define fclose _fclose
-#define malloc _malloc
-#define realloc _realloc
-#define calloc _calloc
 
 /**
  * Inicializa database com os valores padrões
