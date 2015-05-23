@@ -417,29 +417,33 @@ id_type *usuariosMaisJovems(database_t *db, genero_t *generos, tu_t tu) {
 	// opcao 5
 	idade_t idades[10];
 	id_type *result = calloc(10, sizeof(id_type));
-	registro_t reg;
 	FILE *fd = abrirArquivoDB(db, "r");
 	if(_file_size(fd) == 0) {
 		// o arquivo esta vazio
 		return result;
 	}
+	fecharArquivoDB(db);
 	int i = 0;
 	// preenche as 10 primeiras idades
-	while(lerRegistro(db, &reg) != EOF && i < 10) {
-		result[i] = reg.id;
-		idades[i] = reg.idade;
+	int num_id = db->num_id;
+	while(i < 10 || i < num_id) {
+		idades[i] = db->idx_idade.nodes[i].cod;
+		result[i] = db->idx_idade.nodes[i].id;
 		i++;
 	}
-	while(lerRegistro(db, &reg) != EOF) {
-		for(i=0; i<10; i++) {
-			if(reg.idade < idades[i]) {
-				idades[i] = reg.idade;
-				result[i] = reg.id;
+	// varre os demais registros
+	while(i < num_id) {
+		int j;
+		// testa as 10 idades, se alguma é menor do que a q está sendo analisada
+		for(j=0; j<10; j++) {
+			if(db->idx_idade.nodes[i].cod < idades[j]) {
+				idades[j] = db->idx_idade.nodes[i].cod;
+				result[j] = db->idx_idade.nodes[i].id;
 				break;
 			}
 		}
+		i++;
 	}
-	fecharArquivoDB(db);
 	return result;
 }
 
