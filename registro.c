@@ -392,12 +392,16 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 		menos_curtido = 0;
 		// reencontra o menos curtido
 		int j;
-		for(j=1; j<3; j++) {
+		for(j=1; j<=3; j++) {
 			if(escutam[j] < escutam[menos_curtido]) {
 				menos_curtido = j;
 			}
 		}
 		i++;
+	}
+	// altera o vetor resultado
+	for(i=1; i<=3; i++) {
+		result[i-1] = escutam[i];
 	}
 	return result;
 }
