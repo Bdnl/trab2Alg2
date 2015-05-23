@@ -155,7 +155,6 @@ offset_t pesquisarRegistro(database_t *db, id_type id) {
  */
 bool removerRegistro(database_t *db, id_type id) {
 
-	offset_t posIdx;
 	int i;
 	// opcao 2
 	FILE *fd = abrirArquivoDB(db, "r+");
