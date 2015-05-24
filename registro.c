@@ -243,11 +243,9 @@ id_type* monta_conjuntoPopIdad(database_t *db, idade_t ini, idade_t fim) {
 
 	parametro = 0;
 	conj_pessoas = calloc(db->num_id, sizeof(id_type)); //Inicializa todos com 0
-	for(i = 0; i < db->num_id; i++) {
-		idToRegistro(db, db->idx_id[i].id, &reg);
-
-		if(reg.idade >= ini && reg.idade <= fim) {
-			conj_pessoas[i] = db->idx_id[i].id;
+	for(i = 0; i < db->idx_idade.num_node; i++) {
+		if(db->idx_idade.nodes[i].cod >= ini && db->idx_idade.nodes[i].cod <= fim) {
+			conj_pessoas[i] = db->idx_idade.nodes[i].id;
 			parametro++;
 		}
 	}
@@ -271,6 +269,12 @@ id_type* monta_conjuntoPopIdad(database_t *db, idade_t ini, idade_t fim) {
 genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
 	// opcao 6
 	genero_t *result = calloc(10, sizeof(genero_t));
+	if(ini > fim) {
+		#ifdef DEBUG
+			printf("Digitaram as idades erradas\n");
+		#endif //DEBUG
+		return result; //Vazio
+	}
 	// vetor com a quantidade de pessoas que escuta determinado genero
 	int escutam[GENSIZE] = {0};
 	registro_t reg;
@@ -373,6 +377,27 @@ void idToRegistro(database_t *db, id_type id, registro_t *reg) {
 }
 
 /*
+Função que verifica se uma pessoa curte um determinado gênero pelo seu id
+Variáveis:
+	db- Banco de dados presente em memória
+	id- id da pessoa em questão
+	genero- código do gênero procurado
+Retorno:
+	true- A pessoa curte o gênero
+	false- A pessoa não curte o gênero
+*/
+bool idCurteGenero(database_t *db, id_type id, genero_t genero) {
+	int i;
+
+	for (i = 0; i < db->idx_genero.num_node; i++) {
+		if(db->idx_genero.nodes[i].cod == genero && db->idx_genero.nodes[i].id == id) { //A pessoa curte o gênero
+			return true;
+		}
+	}
+	return false;
+}
+
+/*
 Função que verifica se uma dada pessoa curte todos os gêneros necessários
 Variáveis:
 	db- Banco de dados presente em memória
@@ -387,13 +412,10 @@ Retorno:
 */
 bool pessoaCurteGeral(database_t *db, id_type id, genero_t *generos) {
 	int i;
-	registro_t reg;	
-
-	idToRegistro(db, id, &reg);
 
 	i = 0;
 	while (generos[i]) {
-		if(!regCurteGenero(&reg, generos[i])) { //Pessoa não curte pelo menos um dos gêneros
+		if(!idCurteGenero(db, id, generos[i])) { //Pessoa não curte pelo menos um dos gêneros
 			return false;
 		}
 		i++;
@@ -479,6 +501,15 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	//Monta o conjunto que contém as pessoas que escutam os gêneros
 	id_type *conj_pessoas;
 	conj_pessoas = monta_conjuntoGeneros(db, generos);
+	#ifdef DEBUG
+		int k;
+		printf("Pessoas que curtem os generos: ");
+		for(k = 0; k < db->num_id; k++) {
+			if(conj_pessoas[k] != 0) {
+				printf("%d ", conj_pessoas[k]);
+			}
+		}
+	#endif //DEBUG
 	if(conj_pessoas == NULL) {
 		#ifdef DEBUG
 			printf("Não foram encontradas pessoas que gostam simultaneamente dos generos\n");
