@@ -350,6 +350,13 @@ id_type *usariosPorGenero(database_t *db, genero_t genero, idade_t ini, idade_t 
 	int result_size = 0;
 	int i, j;
 
+	if(ini > fim) { //Verifica se a faixa etária foi digitada corretamente
+		#ifdef DEBUG
+			printf("As idades foram digitadas erradas\n");
+		#endif //DEBUG
+			result = calloc(1, sizeof(id_type));
+			return result;
+	}
 	//Primeiramente monta um conjunto de todas as pessoas que atendem aos requisitos com o maior tamanho possível
 	conj_pessoas = calloc(db->num_id, sizeof(id_type));
 	for (i = 0; i < db->num_id; i++) {
