@@ -233,6 +233,32 @@ bool regCurteGenero(registro_t *reg, genero_t genero) {
 	return false;
 }
 
+/*
+
+*/
+id_type* monta_conjuntoPopIdad(database_t *db, idade_t ini, idade_t fim) {
+	id_type *conj_pessoas;
+	int i, parametro;
+	registro_t reg;
+
+	parametro = 0;
+	conj_pessoas = calloc(db->num_id, sizeof(id_type)); //Inicializa todos com 0
+	for(i = 0; i < db->num_id; i++) {
+		IdxToRegistro(db, db->idx_id[i].id, &reg);
+
+		if(reg.idade >= ini && reg.idade <= fim) {
+			conj_pessoas[i] = db->idx_id[i].id;
+			parametro++;
+		}
+	}
+	if(parametro == 0) { //Verifica se realmente foram encontradas pessoas na faixa etária
+		free(conj_pessoas);
+		return NULL;
+	} else {
+		return conj_pessoas;
+	}
+}
+
 /**
  * precisa de free
  * pesquisa os generos mais populares por idade
@@ -248,20 +274,19 @@ genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
 	// vetor com a quantidade de pessoas que escuta determinado genero
 	int escutam[GENSIZE] = {0};
 	registro_t reg;
-	abrirArquivoDB(db, "r");
-	while(lerRegistro(db, &reg) != EOF) {
-		if(reg.idade < ini || reg.idade > fim) {
-			// pula os registros fora de idade
-			continue;
-		}
-		int i = 0;
-		// varre todos os generos da pessoa
-		while(reg.generos[i]) {
-			escutam[reg.generos[i]]++;
-			i++;
-		}
+	//Monta o conjunto de pessoas na faixa etária dada
+	id_type *conj_pessoas;
+	conj_pessoas = monta_conjuntoPopIdad(db, ini, fim);
+	if(conj_pessoas == NULL) {
+		#ifdef DEBUG
+			printf("Não foram encontradas pessoas nesta faixa de idade\n");
+		#endif //DEBUG
+		return result; //Os requisitos não foram encontrados entre os usuários - vetor de gêneros vazio
+	} else {
+		//Coloca os gêneros que as pessoas do conjunto montado escutam no vetor escutam
+		fill_escutam(db, conj_pessoas, escutam);
+		free(conj_pessoas);
 	}
-	fecharArquivoDB(db);
 	// define que os dez maiores sao os dez primeiros
 	int i;
 	for(i=0; i<10; i++) {
@@ -343,7 +368,7 @@ void IdxToRegistro(database_t *db, id_type id, registro_t *reg) {
 	char reg_size;
 
 	//Lê o registro em questão de acordo com o offset do arquivo de índex primário
-	abrirArquivoDB(db, "r");
+	db_file = abrirArquivoDB(db, "r");
 	fseek(db_file, db->idx_id->offset, SEEK_SET);
 	reg_size = fread(&reg_size, sizeof(char), 1, db_file);
 	buffer = malloc(reg_size + 1);
@@ -461,7 +486,7 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	// vetor com a quantidade de pessoas que escuta determinado genero
 	int escutam[GENSIZE] = {0};
 	registro_t reg;
-	//Monta o conjunto que contém as pessoas que escutam os três gêneros
+	//Monta o conjunto que contém as pessoas que escutam os gêneros
 	id_type *conj_pessoas;
 	conj_pessoas = monta_conjuntoGeneros(db, generos);
 	if(conj_pessoas == NULL) {
