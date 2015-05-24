@@ -14,13 +14,12 @@
  * @param subtitulo:	string com o subtítulo da página
 */
 void titulo(char * subtitulo){
-    system("clear");
-    //system("cls");
-    printf("**GERENCIADOR DE USUÁRIOS**\n");
-    if(strcmp(subtitulo, "_")){
-        printf("%s\n", subtitulo);
-    }
-    printf("======================================================\n\n");
+	clear();
+	printf("**GERENCIADOR DE USUÁRIOS**\n");
+	if(strcmp(subtitulo, "_")){
+		printf("%s\n", subtitulo);
+	}
+	printf("======================================================\n\n");
 }
 
 /**
@@ -54,13 +53,15 @@ int teste_idade(char *eh_valido){
 	int idade;
 
 	//Verifica se é número
-	if(!teste_numero(eh_valido))	
+	if(!teste_numero(eh_valido)) {
 		return 0;
+	}
 
 	//Verifica se está dentro de uma faixa aceitável para idades
 	idade = atoi(eh_valido);
-	if(idade > 120)	
+	if(idade > 120) {
 		return 0;
+	}
 
 	return 1;
 }
@@ -70,8 +71,9 @@ int teste_idade(char *eh_valido){
  * @param eh_valido:	ponteiro para a string a ser testada
 */
 int teste_sexo(char *eh_valido){
-	if((eh_valido[0] == 'M' || eh_valido[0] == 'F') && eh_valido[1] == '\0')
+	if((eh_valido[0] == 'M' || eh_valido[0] == 'F') && eh_valido[1] == '\0') {
 		return 1;
+	}
 	return 0; 
 }
 
@@ -80,8 +82,9 @@ int teste_sexo(char *eh_valido){
  * @param eh_valido:	ponteiro para a string a ser testada
 */
 int teste_tu(char *eh_valido){
-	if((eh_valido[0] == '1' || eh_valido[0] == '2' || eh_valido[0] == '3') && eh_valido[1] == '\0')
+	if((eh_valido[0] == '1' || eh_valido[0] == '2' || eh_valido[0] == '3') && eh_valido[1] == '\0') {
 		return 1;
+	}
 	return 0;
 }
 
@@ -100,9 +103,9 @@ void menu_1(database_t *db){
 		
 	//ID
 	_scanf_s(eh_valido, 15);
-	if(teste_id(eh_valido))
+	if(teste_id(eh_valido)) {
 		new_reg.id = atoi(eh_valido);
-	else{
+	} else {
 		printf("ID em formato inválido.\n");
 		ok = 0;
 	}
@@ -112,8 +115,9 @@ void menu_1(database_t *db){
 
 	//Idade
 	_scanf_s(eh_valido, 10);
-	if(teste_idade(eh_valido))
+	if(teste_idade(eh_valido)) {
 		new_reg.idade = atoi(eh_valido);
+	}
 	else{
 		printf("Idade em formato inválido.\n");
 		ok = 0;
@@ -121,8 +125,9 @@ void menu_1(database_t *db){
 	
 	//Sexo
 	_scanf_s(eh_valido, 10);
-	if(teste_sexo(eh_valido))
+	if(teste_sexo(eh_valido)) {
 		new_reg.sexo = eh_valido[0];
+	}
 	else{
 		printf("Sexo em formato inválido.\n");
 		ok = 0;
@@ -130,13 +135,15 @@ void menu_1(database_t *db){
 	
 	//Gêneros
 	_scanf_s(new_reg.generos, GENSIZE);
-	if(new_reg.generos[0] == '\0')
+	if(new_reg.generos[0] == '\0') {
 		strcpy(new_reg.generos, "unknown");
+	}
 	
 	//Tipo de usuário
 	_scanf_s(eh_valido, 10);
-	if(teste_tu(eh_valido))
+	if(teste_tu(eh_valido)) {
 		new_reg.tu = atoi(eh_valido);
+	}
 	else{
 		printf("Tipo do usuário em formato inválido.\n");
 		ok = 0;
@@ -149,13 +156,14 @@ void menu_1(database_t *db){
 		return;
 	}
 
-	//Confere se o ID já existe
-	if(pesquisarRegistro(db, new_reg.id) == -1){
-		//Transforma a string dos gêneros em um vetor de códigos
-		//Adiciona, se necessário, o gênero na tabela de gêneros
-		generosStrToCod(db, new_reg.generos);
-		//Adiciona o registro
-		novoRegistro(db, &new_reg);		
+	//Transforma a string dos gêneros em um vetor de códigos
+	//Adiciona, se necessário, o gênero na tabela de gêneros
+	generosStrToCod(db, new_reg.generos);
+
+	//Adiciona o registro
+	if(novoRegistro(db, &new_reg) != EOF){
+		//Confere se o ID já existe
+		//nesse caso, houve erro
 		printf("Operacao realizada com sucesso\n");
 		system_pause();
 		return;
@@ -188,10 +196,12 @@ void menu_2(database_t *db){
 	id = atoi(eh_valido);
 
 	//Remover usuário
-	if(removerRegistro(db, id))
+	if(removerRegistro(db, id)) {
 		printf("Operacao realizada com sucesso\n");
-	else
+	}
+	else {
 		printf("Falha: ID nao encontrado\n");
+	}
 
 	system_pause();
 	return;	
@@ -263,8 +273,9 @@ void menu_4(database_t *db){
 	//Lê a string de gêneros
 	printf("Gêneros:");
 	_scanf_s(generos_pesq, GENSIZE);
-	if(generos_pesq[0] == '\0')			
+	if(generos_pesq[0] == '\0') {
 		return;
+	}
 
 	//Transforma a string dos gêneros em um vetor de códigos
 	generosStrToCod(db, generos_pesq);
@@ -283,10 +294,12 @@ void menu_4(database_t *db){
 	printf("\nResultado:\n");
 	int i=0;
 	while(generos_result[i]){
-		if(generos_result[i] != '@')
+		if(generos_result[i] != '@') {
 			putchar(generos_result[i]);
-		else
+		}
+		else {
 			putchar('\n');
+		}
 		i++;
 	}
 	putchar('\n');
@@ -310,14 +323,16 @@ void menu_5(database_t *db){
 	//Lê a string de gêneros
 	printf("Gêneros:");
 	_scanf_s(generos_pesq, GENSIZE);
-	if(generos_pesq[0] == '\0')			
+	if(generos_pesq[0] == '\0') {
 		return;
+	}
 
 	//Lê o tipo de usuário
 	printf("Tipo de usuário:");
 	_scanf_s(eh_valido, 10);
-	if(teste_tu(eh_valido))
+	if(teste_tu(eh_valido)) {
 		tu_pesq = atoi(eh_valido);
+	}
 	else{
 		printf("Falha: Tipo do usuário em formato inválido.\n");
 		system_pause();
@@ -384,10 +399,12 @@ void menu_6(database_t *db){
 	printf("\nResultado:\n");
 	int i=0;
 	while(generos_result[i]){
-		if(generos_result[i] != '@')
+		if(generos_result[i] != '@') {
 			putchar(generos_result[i]);
-		else
+		}
+		else {
 			putchar('\n');
+		}
 		i++;
 	}
 	putchar('\n');
@@ -427,8 +444,9 @@ void menu_7(database_t *db){
 	//Lê a string de gêneros
 	printf("Gêneros:");
 	_scanf_s(genero_pesq, GENSIZE);
-	if(genero_pesq[0] == '\0')			
+	if(genero_pesq[0] == '\0') {
 		return;
+	}
 
 	//Transforma a string dos gêneros em um vetor de códigos
 	generosStrToCod(db, genero_pesq);
@@ -454,7 +472,7 @@ void menu_7(database_t *db){
  * Menu principal do programa, no qual o usuário pode escolher a operação a ser realizada
  * @param db:	ponteiro para database
  * @return: 	0 caso o usuário deseja sair do programa
- 				1 caso contrário	
+				1 caso contrário	
 */
 int menu_principal(database_t *db){
 	char opcao;
