@@ -234,12 +234,22 @@ bool regCurteGenero(registro_t *reg, genero_t genero) {
 }
 
 /*
+Função que monta o conjunto com as pessoas que estão numa determinada faixa etária
+Variáveis:
+	db- banco de dados em memória
+	ini- idade inicial
+	fim- idade final
+	conj_pessoas- conjunto de pessoas a ser montado
+	i- contador
+	parametro- usado para ver se foi encontrada pelo menos uma pessoa que atende aos requisitos
 
+Retorno:
+	Ponteiro para um conjunto de pessoas (seus idx) - Se encontrada pelo menos uma pessoa que atende aos requisitos
+	NULL- Não foi encontrado ninguém 
 */
 id_type* monta_conjuntoPopIdad(database_t *db, idade_t ini, idade_t fim) {
 	id_type *conj_pessoas;
 	int i, parametro;
-	registro_t reg;
 
 	parametro = 0;
 	conj_pessoas = calloc(db->num_id, sizeof(id_type)); //Inicializa todos com 0
