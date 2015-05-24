@@ -119,7 +119,7 @@ void generosStrToCod(database_t *db, char *str);
 id_type* monta_conjuntoGeneros(database_t *db, genero_t *generos);
 bool pessoaCurteGeral(database_t *db, id_type id, genero_t *generos);
 void fill_escutam(database_t *db, id_type *conj_pessoas, int *escutam);
-void IdxToRegistro(database_t *db, id_type id, registro_t *reg);
+void idToRegistro(database_t *db, id_type id, registro_t *reg);
 
 id_type* monta_conjuntoPopIdad(database_t *db, idade_t ini, idade_t fim);
 #endif
