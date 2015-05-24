@@ -445,7 +445,6 @@ Variáveis:
 */
 void fill_escutam(database_t *db, id_type *conj_pessoas, int *escutam) {
 	int i, j;
-	registro_t reg;
 
 	for (i = 0; i < db->num_id; i++) {
 		if(conj_pessoas[i] != 0) {
