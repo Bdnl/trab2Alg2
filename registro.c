@@ -338,31 +338,43 @@ genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
  * pesquisa os usuários que gostam de um genero e estão dentro da faixa de idade
  * @param  db        previamente inicializada
  * @param  genero    genero a ser pesquisado
- * @param  idade_ini idade minima
- * @param  idade_fim idade máxima
+ * @param  ini idade minima
+ * @param  fim idade máxima
  * @return           lista de IDs das pessoas que gostam do genero e tem idade entre ini-fim
  * lista do tipo [id1, id2, 0]
  * o último elemento é sempre zero
  */
-id_type *usariosPorGenero(database_t *db, genero_t genero, idade_t idade_ini, idade_t idade_fim) {
+id_type *usariosPorGenero(database_t *db, genero_t genero, idade_t ini, idade_t fim) {
 	// opcao 7
-	id_type *result = NULL;
-	abrirArquivoDB(db, "r");
-	registro_t reg;
+	id_type *conj_pessoas, *result;
 	int result_size = 0;
-	abrirArquivoDB(db, "r");
-	while(lerRegistro(db, &reg) != EOF) {
-		if(regCurteGenero(&reg, genero) && reg.idade >= idade_ini && reg.idade <= idade_fim) {
-			result = _realloc(result, sizeof(id_type) * (result_size + 1));
-			result[result_size] = reg.id;
-			result_size++;
+	int i, j;
+
+	//Primeiramente monta um conjunto de todas as pessoas que atendem aos requisitos com o maior tamanho possível
+	conj_pessoas = calloc(db->num_id, sizeof(id_type));
+	for (i = 0; i < db->num_id; i++) {
+		if (db->idx_idade.nodes[i].cod >= ini && db->idx_idade.nodes[i].cod <= fim) { //Verifica se a pessoa está na faixa etária
+			for (j = 0; j < db->idx_genero.num_node; j++) {
+				if (db->idx_genero.nodes[j].id == db->idx_idade.nodes[i].id && db->idx_genero.nodes[j].cod == genero) { //Verifica se a pessoa curte o gênero
+					conj_pessoas[i] = db->idx_idade.nodes[i].id;
+					result_size++; //Incrementa o tamanho que o resultado terá
+					break;
+				}
+			}
 		}
 	}
-	fecharArquivoDB(db);
-	result = _realloc(result, sizeof(id_type) * (result_size + 1));
-	result[result_size] = 0;
-	result_size++;
-	fecharArquivoDB(db);
+
+	//Monta o vetor a ser retornado com o tamanho necessário
+	result = malloc((result_size + 1) * sizeof(id_type));
+	j = 0;
+	for (i = 0; i < db->num_id; i++) {
+		if(conj_pessoas[i] != 0) {
+			result[j] = conj_pessoas[i];
+			j++;
+		}
+	}
+	result[j] = 0; //Coloca um zero no final do vetor
+	free(conj_pessoas);
 	return result;
 }
 
