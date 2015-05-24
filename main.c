@@ -156,13 +156,14 @@ void menu_1(database_t *db){
 		return;
 	}
 
-	//Confere se o ID já existe
-	if(pesquisarRegistro(db, new_reg.id) == -1){
-		//Transforma a string dos gêneros em um vetor de códigos
-		//Adiciona, se necessário, o gênero na tabela de gêneros
-		generosStrToCod(db, new_reg.generos);
-		//Adiciona o registro
-		novoRegistro(db, &new_reg);		
+	//Transforma a string dos gêneros em um vetor de códigos
+	//Adiciona, se necessário, o gênero na tabela de gêneros
+	generosStrToCod(db, new_reg.generos);
+
+	//Adiciona o registro
+	if(novoRegistro(db, &new_reg) != EOF){
+		//Confere se o ID já existe
+		//nesse caso, houve erro
 		printf("Operacao realizada com sucesso\n");
 		system_pause();
 		return;
