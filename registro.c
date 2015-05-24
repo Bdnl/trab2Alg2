@@ -327,12 +327,128 @@ id_type *usariosPorGenero(database_t *db, genero_t genero, idade_t idade_ini, id
 	return result;
 }
 
+/*
+Função que passa um registro do arquivo para a memória através do índex
+Váriaveis:
+	db- Banco de dados presente em memória
+	id- id da pessoa em questão
+	reg- registro completo correpondente à pessoa
+	db_file- arquivo correspondente ao banco de dados
+	buffer- buffer do registro da pessoa em questão
+	reg_size- tamanho do registro
+*/
+void IdxToRegistro(database_t *db, id_type id, registro_t *reg) {
+	FILE *db_file;
+	char *buffer;
+	char reg_size;
+
+	//Lê o registro em questão de acordo com o offset do arquivo de índex primário
+	abrirArquivoDB(db, "r");
+	fseek(db_file, db->idx_id->offset, SEEK_SET);
+	reg_size = fread(&reg_size, sizeof(char), 1, db_file);
+	buffer = malloc(reg_size + 1);
+	fread(buffer, sizeof(char), (reg_size + 1), db_file);
+	buffer[reg_size] = '\0';
+	fecharArquivoDB(db);
+
+	bufferToReg(buffer, reg);
+	free(buffer);
+}
+
+/*
+Função que verifica se uma dada pessoa curte todos os gêneros necessários
+Variáveis:
+	db- Banco de dados presente em memória
+	id- id da pessoa em questão
+	generos- conjunto de gêneros não vazio
+	i- contador
+	reg- registro completo correpondente à pessoa
+
+Retorno:
+	false- a pessoa não curte pelo menos um dos gêneros no conjunto
+	true- a pessoa curte todos os gêneros do conjunto
+*/
+bool pessoaCurteGeral(database_t *db, id_type id, genero_t *generos) {
+	int i;
+	registro_t reg;	
+
+	IdxToRegistro(db, id, &reg);
+
+	i = 0;
+	while (generos[i]) {
+		if(!regCurteGenero(&reg, generos[i])) { //Pessoa não curte pelo menos um dos gêneros
+			return false;
+		}
+		i++;
+	}
+	return true;
+}
+
+/*
+Função que monta o conjunto com as pessoas que gostam simultâneamente de um certo conjunto de gêneros não vazio
+Variáveis:
+	db- banco de dados em memória
+	gêneros- conjunto de gêneros
+	conj_pessoas- conjunto de pessoas a ser montado
+	i- contador
+	parametro- usado para ver se foi encontrada pelo menos uma pessoa que atende aos requisitos
+
+Retorno:
+	Ponteiro para um conjunto de pessoas (seus idx) - Se encontrada pelo menos uma pessoa que atende aos requisitos
+	NULL- Não foi encontrado ninguém 
+*/
+id_type* monta_conjuntoGeneros(database_t *db, genero_t *generos) {
+	id_type *conj_pessoas;
+	int i, parametro;
+
+	parametro = 0;
+	conj_pessoas = calloc(db->num_id, sizeof(id_type)); //Inicializa todos com 0
+	for(i = 0; i < db->num_id; i++) {
+		if(pessoaCurteGeral(db, db->idx_id[i].id, generos)) {
+			conj_pessoas[i] = db->idx_id[i].id;
+			parametro++;
+		}
+	}
+	if(parametro == 0) { //Verifica se realmente foram encontradas pessoas que gosta de todos os gêneros
+		free(conj_pessoas);
+		return NULL;
+	} else {
+		return conj_pessoas;
+	}
+}
+
+/*
+Função que preenche o vetor escutam de acordo com o gosto das pessoas do conjunto
+Variáveis:
+	db- banco de dados em memória
+	conj_pessoas- conjunto de pessoas a ser montado
+	escutam- vetor com os valores que indicam a quantidade de pessoas no conjunto que gostam de cada tipo de música
+	i, j- contadores
+	reg- registro completo correpondente à pessoa
+*/
+void fill_escutam(database_t *db, id_type *conj_pessoas, int *escutam) {
+	int i, j;
+	registro_t reg;
+
+	for (i = 0; i < db->num_id; i++) {
+		if(conj_pessoas[i] != 0) {
+			IdxToRegistro(db, db->idx_id[i].id, &reg);
+			j = 0;
+			while(reg.generos[j]) {
+				escutam[reg.generos[i]]++;
+				j++;
+			}
+		}
+	}
+}
+
 /**
  * precisa de free
  * os 3 generos mais populares entres as pessoas que curtem os generos do parametro
  * @param  db      previamente inicializada
  * @param  generos generos deve ser algo como [1, 2, 3, 4, 0], o ultimo valor é sempre 0
  * @return         é algo como [1, 2, 3, 0], DEVE LER ATÉ O 0, não necessariamente tem 3 elementos
+ 	conj_pessoas- conjunto das pessoas que escutam os gêneros procurados
  */
 genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	// opcao 4
@@ -345,31 +461,20 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	// vetor com a quantidade de pessoas que escuta determinado genero
 	int escutam[GENSIZE] = {0};
 	registro_t reg;
-	abrirArquivoDB(db, "r");
-	while(lerRegistro(db, &reg) != EOF) {
-		// variavel que diz se o while debaixo deu break
-		bool breaked = false;
-		int i = 0;
-		while(generos[i]) {
-			if(!regCurteGenero(&reg, generos[i])) {
-				// essa pessoa nao curte um dos generos requeridos
-				breaked = true;
-				break;
-			}
-			i++;
-		}
-		// passa pro proximo registro se o laço acima foi interrompido
-		if(breaked) {
-			continue;
-		}
-		i = 0;
-		// varre todos os generos da pessoa
-		while(reg.generos[i]) {
-			escutam[reg.generos[i]]++;
-			i++;
-		}
+	//Monta o conjunto que contém as pessoas que escutam os três gêneros
+	id_type *conj_pessoas;
+	conj_pessoas = monta_conjuntoGeneros(db, generos);
+	if(conj_pessoas == NULL) {
+		#ifdef DEBUG
+			printf("Não foram encontradas pessoas que gostam simultaneamente dos generos\n");
+		#endif //DEBUG
+		return result; //Os requisitos não foram encontrados entre os usuários - vetor de gêneros vazio
+	} else {
+		//Coloca os gêneros que as pessoas do conjunto montado escutam no vetor escutam
+		fill_escutam(db, conj_pessoas, escutam);
+		free(conj_pessoas);
 	}
-	fecharArquivoDB(db);
+
 	// define que os 3 maiores sao os 3 primeiros
 	int i;
 	for(i=0; i<3; i++) {
