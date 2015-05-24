@@ -449,11 +449,10 @@ void fill_escutam(database_t *db, id_type *conj_pessoas, int *escutam) {
 
 	for (i = 0; i < db->num_id; i++) {
 		if(conj_pessoas[i] != 0) {
-			idToRegistro(db, db->idx_id[i].id, &reg);
-			j = 0;
-			while(reg.generos[j]) {
-				escutam[reg.generos[i]]++;
-				j++;
+			for(j = 0; j < db->idx_genero.num_node; j++) {
+				if (db->idx_genero.nodes[j].id == conj_pessoas[i]) {
+					escutam[db->idx_genero.nodes[j].cod]++;
+				}
 			}
 		}
 	}
