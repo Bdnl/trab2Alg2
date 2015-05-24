@@ -244,7 +244,7 @@ id_type* monta_conjuntoPopIdad(database_t *db, idade_t ini, idade_t fim) {
 	parametro = 0;
 	conj_pessoas = calloc(db->num_id, sizeof(id_type)); //Inicializa todos com 0
 	for(i = 0; i < db->num_id; i++) {
-		IdxToRegistro(db, db->idx_id[i].id, &reg);
+		idToRegistro(db, db->idx_id[i].id, &reg);
 
 		if(reg.idade >= ini && reg.idade <= fim) {
 			conj_pessoas[i] = db->idx_id[i].id;
@@ -362,22 +362,14 @@ Váriaveis:
 	buffer- buffer do registro da pessoa em questão
 	reg_size- tamanho do registro
 */
-void IdxToRegistro(database_t *db, id_type id, registro_t *reg) {
+void idToRegistro(database_t *db, id_type id, registro_t *reg) {
 	FILE *db_file;
-	char *buffer;
-	char reg_size;
 
 	//Lê o registro em questão de acordo com o offset do arquivo de índex primário
 	db_file = abrirArquivoDB(db, "r");
-	fseek(db_file, db->idx_id->offset, SEEK_SET);
-	reg_size = fread(&reg_size, sizeof(char), 1, db_file);
-	buffer = malloc(reg_size + 1);
-	fread(buffer, sizeof(char), (reg_size + 1), db_file);
-	buffer[reg_size] = '\0';
+	fseek(db_file, pesquisarRegistro(db, id)-1, SEEK_SET);
+	lerRegistro(db, reg);
 	fecharArquivoDB(db);
-
-	bufferToReg(buffer, reg);
-	free(buffer);
 }
 
 /*
@@ -397,7 +389,7 @@ bool pessoaCurteGeral(database_t *db, id_type id, genero_t *generos) {
 	int i;
 	registro_t reg;	
 
-	IdxToRegistro(db, id, &reg);
+	idToRegistro(db, id, &reg);
 
 	i = 0;
 	while (generos[i]) {
@@ -457,7 +449,7 @@ void fill_escutam(database_t *db, id_type *conj_pessoas, int *escutam) {
 
 	for (i = 0; i < db->num_id; i++) {
 		if(conj_pessoas[i] != 0) {
-			IdxToRegistro(db, db->idx_id[i].id, &reg);
+			idToRegistro(db, db->idx_id[i].id, &reg);
 			j = 0;
 			while(reg.generos[j]) {
 				escutam[reg.generos[i]]++;
