@@ -98,10 +98,9 @@ void menu_1(database_t *db){
 	char ok = 1; 		//Se =1 ao final da função, todos os dados estão dentro do padrão esperado 
 
 	titulo("Inserir usuário");
-
-	printf("Insira os dados:\n");
 		
 	//ID
+	printf("\nID:");
 	_scanf_s(eh_valido, 15);
 	if(teste_id(eh_valido)) {
 		new_reg.id = atoi(eh_valido);
@@ -111,9 +110,11 @@ void menu_1(database_t *db){
 	}
 	
 	//Nome
+	printf("Nome:");
 	_scanf_s(new_reg.nome, NOMESIZE);
 
 	//Idade
+	printf("Idade:");
 	_scanf_s(eh_valido, 10);
 	if(teste_idade(eh_valido)) {
 		new_reg.idade = atoi(eh_valido);
@@ -124,6 +125,7 @@ void menu_1(database_t *db){
 	}
 	
 	//Sexo
+	printf("Sexo:");
 	_scanf_s(eh_valido, 10);
 	if(teste_sexo(eh_valido)) {
 		new_reg.sexo = eh_valido[0];
@@ -134,12 +136,14 @@ void menu_1(database_t *db){
 	}
 	
 	//Gêneros
+	printf("Gêneros:");
 	_scanf_s(new_reg.generos, GENSIZE);
 	if(new_reg.generos[0] == '\0') {
 		strcpy(new_reg.generos, "unknown");
 	}
 	
 	//Tipo de usuário
+	printf("Tipo de usuário:");
 	_scanf_s(eh_valido, 10);
 	if(teste_tu(eh_valido)) {
 		new_reg.tu = atoi(eh_valido);
