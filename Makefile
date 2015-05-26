@@ -1,5 +1,5 @@
 CC=gcc
-FLAGS=-DDEBUG
+FLAGS=
 CFLAGS=-c $(FLAGS)
 LDFLAGS=$(FLAGS)
 SOURCES=main.c misc.c registro.c database.c
@@ -13,6 +13,10 @@ run: $(EXECUTABLE)
 
 $(EXECUTABLE): $(OBJECTS)
 	$(CC) $(OBJECTS) -o $@ $(LDFLAGS)
+
+debug: $(SOURCES)
+	$(CC) $(SOURCES) -o $(EXECUTABLE) $(LDFLAGS) -DDEBUG
+	./$(EXECUTABLE)
 
 .c.o:
 	$(CC) $< -o $@ $(CFLAGS)
