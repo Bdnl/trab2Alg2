@@ -25,10 +25,18 @@ void initDB(database_t *db) {
 	fclose(fopen(GENEROSTABLEFILENAME, "a"));
 	// carrega todos os idx
 	// carrega idx principal
-	FILE *fd = fopen(IDXFILENAME, "r");
-	db->num_id = _file_size(fd) / sizeof(idx_id_t);
-	if(db->num_id == 0) {
+	FILE *fd = fopen(IDXFILENAME, "r+");
+	// menos um porque o primeiro byte é o flag q diz se tá ordenado ou não
+	db->num_id = (_file_size(fd) - 1) / sizeof(idx_id_t);
+	db->ordenado = fgetc(fd);
+	if(db->ordenado == -1) {
 		// não foi inserido nenhum arquivo por enquanto, não há necessidade de carregar conteúdos em RAM
+		// mas deve inserir a flag no arquivo
+		rewind(fd);
+		fputc(1, fd);
+		db->ordenado = 1;
+		db->num_id = 0;
+		fclose(fd);
 		return;
 	}
 	db->idx_id = malloc(db->num_id * sizeof(idx_id_t));
@@ -200,4 +208,93 @@ void closeDB(database_t *db) {
 	freeSecundaryIdx(&db->idx_idade);
 	freeSecundaryIdx(&db->idx_genero);
 	free(db->idx_id);
+}
+
+/* ====================================================
+   FUNCOES DE ORDENACAO
+   ==================================================== */
+int qsort_secundary(const void *p1, const void *p2) {
+	secundary_node_t *lt = (secundary_node_t *) p1;
+	secundary_node_t *gt = (secundary_node_t *) p2;
+	if(lt->cod < gt->cod) {
+		return -1;
+	} else if(lt->cod > gt->cod) {
+		return 1;
+	}
+	return 0;
+}
+
+int qsort_idx(const void *p1, const void *p2) {
+	idx_id_t *lt = (idx_id_t *) p1;
+	idx_id_t *gt = (idx_id_t *) p2;
+	if(lt->id < gt->id) {
+		return -1;
+	} else if(lt->id > gt->id) {
+		return 1;
+	}
+	return 0;
+}
+
+/**
+ * funcao que retorna se tem registro ou não dentro do programa
+ * @param  db previamente inicializado
+ * @return    verdadeiro se tem registros dentro do arquivo
+ */
+bool temRegistro(database_t *db) {
+	return db->num_id;
+}
+
+void ordenarSecundario(database_t *db, secundary_t *secundary, FILE *fd) {
+	qsort(secundary->nodes, secundary->num_node, sizeof(secundary_node_t), qsort_secundary);
+	fwrite(secundary->nodes, sizeof(secundary_node_t), secundary->num_node, fd);
+}
+
+void ordenarDB(database_t *db) {
+	if(db->ordenado) {
+		// já está ordenado
+		return ;
+	}
+	if(!temRegistro(db)) {
+		// nao há arquivos para serem ordenados
+		return ;
+	}
+	// ordena idx_id_t
+	qsort(db->idx_id, db->num_id, sizeof(idx_id_t), qsort_idx);
+
+	// atualiza os arquivos
+	FILE *fd = abrirArquivoIdx(db, "w");
+	fputc(1, fd); // flag de ordenado
+	fwrite(db->idx_id, sizeof(idx_id_t), db->num_id, fd);
+	fecharArquivoIdx(db);
+	fd = abrirArquivoIdade(db, "w");
+	ordenarSecundario(db, &db->idx_idade, fd);
+	fecharArquivoIdade(db);
+	fd = abrirArquivoGeneros(db, "w");
+	ordenarSecundario(db, &db->idx_genero, fd);
+	fecharArquivoGeneros(db);
+}
+
+/**
+ * set na flag do arquivo idx, essa flag diz se os indices estao atualizados ou não
+ * @param db   inicializado previamente
+ * @param flag nova flag
+ */
+void setFlag(database_t *db, char flag) {
+	if(db->ordenado == flag) {
+		// já é igual, não precisa fazer nada
+		return ;
+	}
+	if(flag == 1) {
+		// se for para ordenar, que ordene!!
+		ordenarDB(db);
+	}
+	#ifdef DEBUG
+		printf("Modificando a FLAG para '%d'\n", flag);
+	#endif // DEBUG
+	// seta a nova flag
+	db->ordenado = flag;
+	FILE *fd = abrirArquivoIdx(db, "r+");
+	// insere no arquivo idx o status da flag
+	fputc(flag, fd);
+	fecharArquivoIdx(db);
 }

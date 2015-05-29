@@ -6,7 +6,6 @@ M
 Rock@Funk@Opera@Infantil
 1
 
-
 1
 02
 Elaine
@@ -15,15 +14,13 @@ F
 Punk@Eletronica@Rock
 3
 
-
 1
 03
 Ze
 20
 M
-
+unknown
 2
-
 
 1
 04
@@ -33,7 +30,6 @@ M
 Opera@Rock@Sertanejo
 1
 
-
 1
 05
 Marcela
@@ -41,7 +37,6 @@ Marcela
 F
 Infantil@Funk
 1
-
 
 1
 06
@@ -51,7 +46,6 @@ F
 Samba@Bossa Nova@Sertanejo
 2
 
-
 1
 07
 Maria
@@ -59,7 +53,6 @@ Maria
 F
 Rock@Opera@Infantil@Punk
 3
-
 
 1
 08
@@ -69,7 +62,6 @@ M
 Sertanejo@Rock@Opera@Infantil
 1
 
-
 1
 09
 Nancy
@@ -77,7 +69,6 @@ Nancy
 F
 Funk@Rock@Opera@Bossa Nova
 1
-
 
 1
 10
@@ -87,7 +78,6 @@ M
 Funk@Rock@Bossa Nova@Opera
 3
 
-
 1
 11
 Kids
@@ -95,7 +85,6 @@ Kids
 M
 Infantil@Rock
 3
-
 
 1
 12

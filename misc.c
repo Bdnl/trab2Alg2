@@ -12,12 +12,12 @@
 #define __MISC_C__
 #include "misc.h"
 
-// 23.05.2015
+// 25.05.2015
 
 // getchar que não deixa enter no buffer
 char _getchar() {
-	char str[3];
-	fgets(str, 3, stdin);
+	char str[5];
+	fgets(str, 5, stdin);
 	return *str;
 }
 

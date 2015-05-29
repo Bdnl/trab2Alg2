@@ -14,7 +14,9 @@
  * @param subtitulo:	string com o subtítulo da página
 */
 void titulo(char * subtitulo){
-	clear();
+	#ifndef DEBUG
+		clear();
+	#endif
 	printf("**GERENCIADOR DE USUÁRIOS**\n");
 	if(strcmp(subtitulo, "_")){
 		printf("%s\n", subtitulo);
@@ -29,7 +31,7 @@ void titulo(char * subtitulo){
 int teste_numero(char *eh_numero){
 	int i = 0;
 	while(eh_numero[i] != '\0'){
-		if(eh_numero[i] < 48 || eh_numero[i] > 57){ //48 = '0'	57 = '9'
+		if(eh_numero[i] < '0' || eh_numero[i] > '9') {
 			return 0;
 		}
 		i++;
@@ -98,7 +100,6 @@ void menu_1(database_t *db){
 	char ok = 1; 		//Se =1 ao final da função, todos os dados estão dentro do padrão esperado 
 
 	titulo("Inserir usuário");
-		
 	//ID
 	printf("\nID:");
 	_scanf_s(eh_valido, 15);
@@ -112,7 +113,6 @@ void menu_1(database_t *db){
 	//Nome
 	printf("Nome:");
 	_scanf_s(new_reg.nome, NOMESIZE);
-
 	//Idade
 	printf("Idade:");
 	_scanf_s(eh_valido, 10);
@@ -235,6 +235,8 @@ void menu_3(database_t *db){
 	id = atoi(eh_valido);
 
 	//Pesquisar usuario e verificar se o mesmo existe
+	// ordena antes de pesquisar
+	setFlag(db, 1);
 	offset_pesq = pesquisarRegistro(db, id);
 	if(offset_pesq == -1){
 		printf("Falha: ID nao encontrado\n");
@@ -248,7 +250,7 @@ void menu_3(database_t *db){
 	//ler o registro e imprimir os dados
 	abrirArquivoDB(db, "r");
 	fseek((db->file_db), (offset_pesq - 1), SEEK_SET);
-	offset_pesq = lerRegistro(db, &reg_pesq);
+	lerRegistro(db, &reg_pesq);
 	fecharArquivoDB(db);
 
 	printf("\n%d\n", reg_pesq.id);

@@ -75,6 +75,8 @@ offset_t novoRegistro(database_t *db, registro_t *reg) {
 		#endif // DEBUG
 		return EOF;
 	}
+	// volta a flag para zero
+	setFlag(db, 0);
 	FILE *fd = abrirArquivoDB(db, "a");
 	// offset indica o valor do primeiro caracter no arquivo
 	offset_t offset = ftell(fd) + 1;
@@ -100,9 +102,9 @@ offset_t novoRegistro(database_t *db, registro_t *reg) {
 	idx_id->offset = offset;
 	// abre o arquivo de idx principal
 	// insere no final
-	fd = fopen(IDXFILENAME, "a");
+	fd = abrirArquivoIdx(db, "a");
 	fwrite(idx_id, sizeof(idx_id_t), 1, fd);
-	fclose(fd);
+	fecharArquivoIdx(db);
 }
 
 /**
@@ -137,14 +139,42 @@ offset_t lerRegistro(database_t *db, registro_t *reg) {
  */
 offset_t pesquisarRegistro(database_t *db, id_type id) {
 	// opcao 3
-	int i;
-	for(i=0; i<db->num_id; i++) {
-		if(db->idx_id[i].id == id) {
-			return db->idx_id[i].offset;
+	if(db->ordenado == 0) {
+		// pesquisa sequencial
+		int i;
+		for(i=0; i<db->num_id; i++) {
+			if(db->idx_id[i].id == id) {
+				return db->idx_id[i].offset;
+			}
 		}
+		// nao encontrado	
+		return -1;
+	} else {
+		// pesquisa binária
+		#ifdef DEBUG
+			printf("Iniciando a pesquisa binária, procurando por ID: '%d'\n", id);
+		#endif // DEBUG
+		int beg = 0;
+		int end = db->num_id-1;
+		while(beg <= end) {
+			int mid = (beg + end) / 2;
+			#ifdef DEBUG
+				printf("Testando o ID: '%d'\n", db->idx_id[mid].id);
+			#endif // DEBUG
+			if(db->idx_id[mid].id == id) {
+				// encontrou
+				return db->idx_id[mid].offset;
+			} else if(id < db->idx_id[mid].id) {
+				// está para a esquerda
+				end = mid-1;
+			} else if(id > db->idx_id[mid].id) {
+				// está para a direita
+				beg = mid+1;
+			}
+		}
+		// caso se não encontrar
+		return -1;
 	}
-	// nao encontrado
-	return -1;
 }
 
 /**
@@ -154,14 +184,16 @@ offset_t pesquisarRegistro(database_t *db, id_type id) {
  * @return    true caso seja verdadeiro
  */
 bool removerRegistro(database_t *db, id_type id) {
-
-	int i;
 	// opcao 2
-	FILE *fd = abrirArquivoDB(db, "r+");
+	// ordena antes de remover
+	setFlag(db, 1);
+	int i;
 	offset_t pos = pesquisarRegistro(db, id);
 	if(pos == EOF) {
 		return false;
 	}
+	// volta a flag para zero
+	FILE *fd = abrirArquivoDB(db, "r+");
 	fseek(fd, pos, SEEK_SET);
 	// insere o * indicando q o registro está apagado
 	fputc('*', fd);
@@ -212,6 +244,9 @@ bool removerRegistro(database_t *db, id_type id) {
 	fecharArquivoGeneros(db);
 	fecharArquivoIdade(db);
 	fecharArquivoDB(db);
+
+	// diz que a flag está desordenada
+	setFlag(db, 0);
 	return true;
 }
 
@@ -287,7 +322,6 @@ genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
 	}
 	// vetor com a quantidade de pessoas que escuta determinado genero
 	int escutam[GENSIZE] = {0};
-	registro_t reg;
 	//Monta o conjunto de pessoas na faixa etária dada
 	id_type *conj_pessoas;
 	conj_pessoas = monta_conjuntoPopIdad(db, ini, fim);

@@ -53,6 +53,7 @@ typedef struct {
 
 	idx_id_t *idx_id; // lista com todos os id e seus offset
 	uint num_id; // quantidade de ids
+	int ordenado; // diz se os arquivos de indice estão ordenados, é int pq usa fgetc e pode retornar -1
 	secundary_t idx_idade;
 	secundary_t idx_genero;
 
@@ -137,4 +138,27 @@ void freeSecundaryIdx(secundary_t *secundary);
  * @param db previamente inicializado
  */
 void closeDB(database_t *db);
+
+/* ====================================================
+   FUNCOES DE ORDENACAO
+   ==================================================== */
+int qsort_secundary(const void *p1, const void *p2);
+
+int qsort_idx(const void *p1, const void *p2);
+
+/**
+ * funcao que retorna se tem registro ou não dentro do programa
+ * @param  db previamente inicializado
+ * @return    verdadeiro se tem registros dentro do arquivo
+ */
+bool temRegistro(database_t *db);
+
+void ordenarDB(database_t *db);
+
+/**
+ * set na flag do arquivo idx, essa flag diz se os indices estao atualizados ou não
+ * @param db   inicializado previamente
+ * @param flag nova flag
+ */
+void setFlag(database_t *db, char flag);
 #endif

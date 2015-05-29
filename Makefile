@@ -22,6 +22,6 @@ debug: $(SOURCES)
 	$(CC) $< -o $@ $(CFLAGS)
 
 clear:
-	rm *.o
-	rm *.dat
 	rm $(EXECUTABLE)
+	rm *.dat
+	rm *.o
