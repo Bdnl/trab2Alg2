@@ -646,7 +646,7 @@ id_type *usuariosMaisJovems(database_t *db, genero_t *generos, tu_t tu) {
 		i++;
 	}
 	// varre os demais registros
-	while(i < num_id) {
+	while(i < num_id && i > 10) {
 		int j;
 		// testa as 10 idades, se alguma é menor do que a q está sendo analisada
 		for(j=0; j<10; j++) {
