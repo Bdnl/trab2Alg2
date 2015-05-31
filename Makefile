@@ -2,7 +2,7 @@ CC=gcc
 FLAGS=
 CFLAGS=-c $(FLAGS)
 LDFLAGS=$(FLAGS)
-SOURCES=main.c misc.c registro.c database.c
+SOURCES=main.c misc.c registro.c database.c test.c
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=t2
 

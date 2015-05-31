@@ -1,6 +1,8 @@
 #ifndef __DATABASE_H__
 #define __DATABASE_H__
 
+#define TEST // defina isto para fazer casos de teste
+
 #define DBFILENAME "db.dat"
 #define IDXFILENAME "idx.dat"
 #define IDADEFILENAME "idade.dat"
@@ -145,6 +147,13 @@ void closeDB(database_t *db);
 int qsort_secundary(const void *p1, const void *p2);
 
 int qsort_idx(const void *p1, const void *p2);
+
+/**
+ * Busca binária em índice secundário
+ * @param  id        id do índice procurado
+ * @return           retorna a posição do primeiro índice na memória
+ */
+int bsearchSecundary(secundary_t *secundary, id_type id);
 
 /**
  * funcao que retorna se tem registro ou não dentro do programa

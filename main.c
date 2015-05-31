@@ -9,6 +9,8 @@
 #include "misc.h"
 #include "database.h"
 
+#ifndef TEST
+
 /**
  * Títulos das páginas
  * @param subtitulo:	string com o subtítulo da página
@@ -541,3 +543,5 @@ int main(void){
 
 	return 0;
 }
+
+#endif // TEST

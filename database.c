@@ -53,6 +53,9 @@ void initDB(database_t *db) {
 	// fread(db->genero_table.nodes, sizeof(genero_node_t), db->genero_table.num_node, fd);
 	// leitura IU
 	char buffer[256];
+	#ifdef DEBUG
+		section("CARREGANDO GENEROS");
+	#endif // DEBUG
 	while(_fgets(buffer, 256, fd)) {
 		// i vai de 0 até o número de generos-1
 		int i = db->genero_table.num_node++;
@@ -69,6 +72,9 @@ void initDB(database_t *db) {
 		#endif // DEBUG
 	}
 	fclose(fd);
+	#ifdef DEBUG
+		section("DATABASE CARREGADO!");
+	#endif // DEBUG
 }
 
 /* ====================================================
@@ -211,22 +217,74 @@ void closeDB(database_t *db) {
 }
 
 /* ====================================================
-   FUNCOES DE ORDENACAO
+   FUNCOES DE ORDENACAO E PESQUISA
    ==================================================== */
 int qsort_secundary(const void *p1, const void *p2) {
 	secundary_node_t *lt = (secundary_node_t *) p1;
 	secundary_node_t *gt = (secundary_node_t *) p2;
-	if(lt->cod < gt->cod) {
+	// joga os zeros para a direita
+	if(lt->id == 0) {
+		return 1;
+	} else if(gt->id == 0) {
 		return -1;
-	} else if(lt->cod > gt->cod) {
+	}
+	// ordenação ascendente
+	if(lt->id < gt->id) {
+		return -1;
+	} else if(lt->id > gt->id) {
 		return 1;
 	}
 	return 0;
 }
 
+/**
+ * Busca binária em índice secundário
+ * @param  id        id do índice procurado
+ * @return           retorna a posição do primeiro índice na memória
+ */
+int bsearchSecundary(secundary_t *secundary, id_type id) {
+	// pesquisa binária
+	#ifdef DEBUG
+		printf("Iniciando a pesquisa binária no índice secundário, procurando por ID: '%d'\n", id);
+	#endif // DEBUG
+	int beg = 0;
+	int end = secundary->num_node-1;
+	while(beg <= end) {
+		int mid = (beg + end) / 2;
+		if(secundary->nodes[mid].id == id) {
+			// encontrou
+			// anda com o mid para trás para char o primeiro elemento
+			while(mid > 0) {
+				if(secundary->nodes[mid-1].id == id) {
+					mid--;
+				} else {
+					// se o ID de trás for de outra pessoa, sai do laço
+					break;
+				}
+			}
+			return mid;
+		} else if(id < secundary->nodes[mid].id) {
+			// está para a esquerda
+			end = mid-1;
+		} else if(id > secundary->nodes[mid].id) {
+			// está para a direita
+			beg = mid+1;
+		}
+	}
+	// caso se não encontrar
+	return -1;
+}
+
 int qsort_idx(const void *p1, const void *p2) {
 	idx_id_t *lt = (idx_id_t *) p1;
 	idx_id_t *gt = (idx_id_t *) p2;
+	// joga os zeros para a direita
+	if(lt->id == 0) {
+		return 1;
+	} else if(gt->id == 0) {
+		return -1;
+	}
+	// ordenação ascendente
 	if(lt->id < gt->id) {
 		return -1;
 	} else if(lt->id > gt->id) {
@@ -241,12 +299,36 @@ int qsort_idx(const void *p1, const void *p2) {
  * @return    verdadeiro se tem registros dentro do arquivo
  */
 bool temRegistro(database_t *db) {
-	return db->num_id;
+	return db->num_id > 0;
 }
 
 void ordenarSecundario(database_t *db, secundary_t *secundary, FILE *fd) {
 	qsort(secundary->nodes, secundary->num_node, sizeof(secundary_node_t), qsort_secundary);
 	fwrite(secundary->nodes, sizeof(secundary_node_t), secundary->num_node, fd);
+}
+
+void loadRegFromMemory(database_t *db, id_type id, registro_t *reg) {
+	reg->id = id;
+	// carrega a idade
+	int sec_pos = bsearchSecundary(&db->idx_idade, id);
+	reg->idade = db->idx_idade.nodes[sec_pos].cod;
+	// carrega os generos
+	sec_pos = bsearchSecundary(&db->idx_genero, id);
+	if(sec_pos == -1) {
+		// vetor generos está vazio
+		reg->generos[0] = 0;
+	} else {
+		int i = 0;
+		while(sec_pos < db->idx_genero.num_node) {
+			if(db->idx_genero.nodes[sec_pos].id != id) {
+				break;
+			}
+			reg->generos[i] = db->idx_genero.nodes[sec_pos].cod;
+			i++;
+			sec_pos++;
+		}
+		reg->generos[i] = 0;
+	}
 }
 
 void ordenarDB(database_t *db) {

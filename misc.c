@@ -12,7 +12,7 @@
 #define __MISC_C__
 #include "misc.h"
 
-// 25.05.2015
+// 31.05.2015
 
 // getchar que não deixa enter no buffer
 char _getchar() {
@@ -234,7 +234,7 @@ float timediff(bool starthere) {
 
 // funcao boa para debug, imprime strings verticalmente
 int printfVerticaly(char *str) {
-	printf("\n===================\n");
+	printf("===================\n");
 	printf("Imprimindo verticalmente: '%s'\n", str);
 	int i = 0;
 	while(str[i]) {
@@ -243,4 +243,9 @@ int printfVerticaly(char *str) {
 	}
 	printf("==================\n");
 	return strlen(str);
+}
+
+// cria uma seção para facilitar o debug da saida
+void section(char *str) {
+	printf("\n/* =============================\n	 %s\n	 ============================= */\n", str);
 }

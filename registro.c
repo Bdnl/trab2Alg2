@@ -158,9 +158,6 @@ offset_t pesquisarRegistro(database_t *db, id_type id) {
 		int end = db->num_id-1;
 		while(beg <= end) {
 			int mid = (beg + end) / 2;
-			#ifdef DEBUG
-				printf("Testando o ID: '%d'\n", db->idx_id[mid].id);
-			#endif // DEBUG
 			if(db->idx_id[mid].id == id) {
 				// encontrou
 				return db->idx_id[mid].offset;
@@ -268,6 +265,19 @@ bool regCurteGenero(registro_t *reg, genero_t genero) {
 	return false;
 }
 
+bool regCurteGeneros(registro_t *reg, genero_t *generos) {
+	int i = 0;
+	// testa todos os generos
+	while(generos[i]) {
+		if(!regCurteGenero(reg, generos[i])) {
+			// se a pessoa não curte esse genero
+			return false;
+		}
+		i++;
+	}
+	return true;
+}
+
 /*
 Função que monta o conjunto com as pessoas que estão numa determinada faixa etária
 Variáveis:
@@ -332,7 +342,7 @@ genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
 		return result; //Os requisitos não foram encontrados entre os usuários - vetor de gêneros vazio
 	} else {
 		//Coloca os gêneros que as pessoas do conjunto montado escutam no vetor escutam
-		fill_escutam(db, conj_pessoas, escutam);
+		// fill_escutam(db, conj_pessoas, escutam);
 		free(conj_pessoas);
 	}
 	// define que os dez maiores sao os dez primeiros
@@ -380,42 +390,38 @@ genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
  */
 id_type *usariosPorGenero(database_t *db, genero_t genero, idade_t ini, idade_t fim) {
 	// opcao 7
-	id_type *conj_pessoas, *result;
+	section("TESTANDO A OPCAO 7");
+	id_type *result = NULL;
 	int result_size = 0;
-	int i, j;
 
 	if(ini > fim) { //Verifica se a faixa etária foi digitada corretamente
 		#ifdef DEBUG
 			printf("As idades foram digitadas erradas\n");
 		#endif //DEBUG
-			result = calloc(1, sizeof(id_type));
-			return result;
-	}
-	//Primeiramente monta um conjunto de todas as pessoas que atendem aos requisitos com o maior tamanho possível
-	conj_pessoas = calloc(db->num_id, sizeof(id_type));
-	for (i = 0; i < db->num_id; i++) {
-		if (db->idx_idade.nodes[i].cod >= ini && db->idx_idade.nodes[i].cod <= fim) { //Verifica se a pessoa está na faixa etária
-			for (j = 0; j < db->idx_genero.num_node; j++) {
-				if (db->idx_genero.nodes[j].id == db->idx_idade.nodes[i].id && db->idx_genero.nodes[j].cod == genero) { //Verifica se a pessoa curte o gênero
-					conj_pessoas[i] = db->idx_idade.nodes[i].id;
-					result_size++; //Incrementa o tamanho que o resultado terá
-					break;
-				}
-			}
-		}
+		result = calloc(1, sizeof(id_type));
+		return result;
 	}
 
-	//Monta o vetor a ser retornado com o tamanho necessário
-	result = malloc((result_size + 1) * sizeof(id_type));
-	j = 0;
-	for (i = 0; i < db->num_id; i++) {
-		if(conj_pessoas[i] != 0) {
-			result[j] = conj_pessoas[i];
-			j++;
+	setFlag(db, 1);
+	// inicia a varredura
+	forAllIds(db, NULL);
+	registro_t reg;
+	while(forAllIds(db, &reg)) {
+		bool condicaoDeIdade = reg.idade >= ini && reg.idade <= fim;
+		if(!condicaoDeIdade || !regCurteGenero(&reg, genero)) {
+			continue;
 		}
+		// adiciona ele ao vetor result
+		result_size++;
+		result = _realloc(result, result_size * sizeof(id_type));
+		result[result_size-1] = reg.id;
+		#ifdef DEBUG
+			printf("Resultado da opção 7, id: %d\n", reg.id);
+		#endif // DEBUG
 	}
-	result[j] = 0; //Coloca um zero no final do vetor
-	free(conj_pessoas);
+	// aloca mais um para o 0 no final
+	result = _realloc(result, (result_size+1) * sizeof(id_type));
+	result[result_size-1] = 0;
 	return result;
 }
 
@@ -486,59 +492,43 @@ bool pessoaCurteGeral(database_t *db, id_type id, genero_t *generos) {
 	return true;
 }
 
-/*
-Função que monta o conjunto com as pessoas que gostam simultâneamente de um certo conjunto de gêneros não vazio
-Variáveis:
-	db- banco de dados em memória
-	gêneros- conjunto de gêneros
-	conj_pessoas- conjunto de pessoas a ser montado
-	i- contador
-	parametro- usado para ver se foi encontrada pelo menos uma pessoa que atende aos requisitos
-
-Retorno:
-	Ponteiro para um conjunto de pessoas (seus idx) - Se encontrada pelo menos uma pessoa que atende aos requisitos
-	NULL- Não foi encontrado ninguém 
-*/
-id_type* monta_conjuntoGeneros(database_t *db, genero_t *generos) {
-	id_type *conj_pessoas;
-	int i, parametro;
-
-	parametro = 0;
-	conj_pessoas = calloc(db->num_id, sizeof(id_type)); //Inicializa todos com 0
-	for(i = 0; i < db->num_id; i++) {
-		if(pessoaCurteGeral(db, db->idx_id[i].id, generos)) {
-			conj_pessoas[i] = db->idx_id[i].id;
-			parametro++;
-		}
+/**
+ * Varre todos os IDs, obtendo todas as informações disponíveis da memória RAM
+ * @param db  previamente inicializada
+ * @param reg NULL para começar uma varredura nova, ponteiro carregado para saida das informações
+ */
+bool forAllIds(database_t *db, registro_t *reg) {
+	// se não há registros no arquivo
+	if(!temRegistro(db)) {
+		return false;
 	}
-	if(parametro == 0) { //Verifica se realmente foram encontradas pessoas que gosta de todos os gêneros
-		free(conj_pessoas);
-		return NULL;
-	} else {
-		return conj_pessoas;
+	// posição do vetor para ler o registro
+	static int pos = 0;
+	if(reg == NULL) {
+		// começa uma nova varredura
+		pos = 0;
+		return false;
 	}
+	// continua a varredura
+	if(pos >= db->num_id) {
+		// varreu todos os ids
+		return false;
+	}
+	loadRegFromMemory(db, db->idx_id[pos].id, reg);
+	pos++;
+	return true;
 }
 
-/*
-Função que preenche o vetor escutam de acordo com o gosto das pessoas do conjunto
-Variáveis:
-	db- banco de dados em memória
-	conj_pessoas- conjunto de pessoas a ser montado
-	escutam- vetor com os valores que indicam a quantidade de pessoas no conjunto que gostam de cada tipo de música
-	i, j- contadores
-	reg- registro completo correpondente à pessoa
-*/
-void fill_escutam(database_t *db, id_type *conj_pessoas, int *escutam) {
-	int i, j;
-
-	for (i = 0; i < db->num_id; i++) {
-		if(conj_pessoas[i] != 0) {
-			for(j = 0; j < db->idx_genero.num_node; j++) {
-				if (db->idx_genero.nodes[j].id == conj_pessoas[i]) {
-					escutam[db->idx_genero.nodes[j].cod]++;
-				}
-			}
-		}
+/**
+ * adiciona ao vetor escutam os generos que o registro curte
+ * @param reg     previamente inicializado
+ * @param escutam vetor de inteiros de tamanho GENSIZE
+ */
+void preencheEscutam(registro_t *reg, int *escutam) {
+	int i = 0;
+	while(reg->generos[i]) {
+		escutam[reg->generos[i]]++;
+		i++;
 	}
 }
 
@@ -548,11 +538,11 @@ void fill_escutam(database_t *db, id_type *conj_pessoas, int *escutam) {
  * @param  db      previamente inicializada
  * @param  generos generos deve ser algo como [1, 2, 3, 4, 0], o ultimo valor é sempre 0
  * @return         é algo como [1, 2, 3, 0], DEVE LER ATÉ O 0, não necessariamente tem 3 elementos
- 	conj_pessoas- conjunto das pessoas que escutam os gêneros procurados
  */
 genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	// opcao 4
 	// mto parecida com a opcao 5
+	section("TESTANDO A OPCAO 4");
 	genero_t *result = calloc(4, sizeof(genero_t));
 	if(generos[0] == 0) {
 		// vetor de generos esta vazio
@@ -560,28 +550,19 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	}
 	// vetor com a quantidade de pessoas que escuta determinado genero
 	int escutam[GENSIZE] = {0};
-	registro_t reg;
 	//Monta o conjunto que contém as pessoas que escutam os gêneros
-	id_type *conj_pessoas;
-	conj_pessoas = monta_conjuntoGeneros(db, generos);
-	#ifdef DEBUG
-		int k;
-		printf("Pessoas que curtem os generos: ");
-		for(k = 0; k < db->num_id; k++) {
-			if(conj_pessoas[k] != 0) {
-				printf("%d ", conj_pessoas[k]);
-			}
+	// ordena
+	setFlag(db, 1);
+	registro_t reg;
+	forAllIds(db, NULL);
+	while(forAllIds(db, &reg)) {
+		if(regCurteGeneros(&reg, generos)) {
+			#ifdef DEBUG
+				printf("Testando Registro: %d\n", reg.id);
+			#endif // DEBUG
+			// se ela curte esses generos
+			preencheEscutam(&reg, escutam);
 		}
-	#endif //DEBUG
-	if(conj_pessoas == NULL) {
-		#ifdef DEBUG
-			printf("Não foram encontradas pessoas que gostam simultaneamente dos generos\n");
-		#endif //DEBUG
-		return result; //Os requisitos não foram encontrados entre os usuários - vetor de gêneros vazio
-	} else {
-		//Coloca os gêneros que as pessoas do conjunto montado escutam no vetor escutam
-		fill_escutam(db, conj_pessoas, escutam);
-		free(conj_pessoas);
 	}
 
 	// define que os 3 maiores sao os 3 primeiros
@@ -613,10 +594,14 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 		}
 		i++;
 	}
-	// altera o vetor resultado
-	for(i=1; i<=3; i++) {
-		result[i-1] = escutam[i];
-	}
+	#ifdef DEBUG
+		printf("Resutlado da opção 4: \n");
+		for(i=0; i<3; i++) {
+			char nome_genero[GENSIZE];
+			generoCodToStr(db, result[i], nome_genero);
+			printf("%s\n", nome_genero);
+		}
+	#endif // DEBUG
 	return result;
 }
 
