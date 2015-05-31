@@ -640,7 +640,7 @@ id_type *usuariosMaisJovems(database_t *db, genero_t *generos, tu_t tu) {
 	int i = 0;
 	// preenche as 10 primeiras idades
 	int num_id = db->num_id;
-	while(i < 10 || i < num_id) {
+	while(i < 10 && i < num_id) {
 		idades[i] = db->idx_idade.nodes[i].cod;
 		result[i] = db->idx_idade.nodes[i].id;
 		i++;
