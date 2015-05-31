@@ -8,6 +8,7 @@
 #define IDADEFILENAME "idade.dat"
 #define GENEROSFILENAME "generos.dat"
 #define GENEROSTABLEFILENAME "generos_table.dat"
+#define TUFILENAME "tu.dat"
 
 // tamanho que um registro nao pode exceder
 #define REGSIZE  100
@@ -58,6 +59,7 @@ typedef struct {
 	int ordenado; // diz se os arquivos de indice estão ordenados, é int pq usa fgetc e pode retornar -1
 	secundary_t idx_idade;
 	secundary_t idx_genero;
+	secundary_t idx_tu;
 
 	genero_table_t genero_table;
 } database_t;

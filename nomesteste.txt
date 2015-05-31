@@ -12,7 +12,7 @@ Elaine
 30
 F
 Punk@Eletronica@Rock
-3
+1
 
 1
 03
@@ -35,7 +35,7 @@ Opera@Rock@Sertanejo
 Marcela
 11
 F
-Infantil@Funk
+Infantil@Funk@Rock
 1
 
 1
@@ -43,8 +43,8 @@ Infantil@Funk
 Marilene
 44
 F
-Samba@Bossa Nova@Sertanejo
-2
+Samba@Bossa Nova@Sertanejo@Rock
+1
 
 1
 07
@@ -52,7 +52,7 @@ Maria
 33
 F
 Rock@Opera@Infantil@Punk
-3
+1
 
 1
 08
@@ -76,7 +76,7 @@ Anjo
 22
 M
 Funk@Rock@Bossa Nova@Opera
-3
+1
 
 1
 11
@@ -84,7 +84,7 @@ Kids
 9
 M
 Infantil@Rock
-3
+1
 
 1
 12
@@ -92,6 +92,6 @@ Bárbara
 11
 F
 Rock@Infantil
-2
+1
 
 8

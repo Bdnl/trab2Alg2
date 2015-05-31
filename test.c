@@ -14,10 +14,11 @@
 int main(int argc, char *argv[]) {
 	database_t db;
 	initDB(&db);
-	genero_t generos_para_teste[] = "Infantil@Rock";
+	genero_t generos_para_teste[] = "Rock";
 	generosStrToCod(&db, generos_para_teste);
 	generosPopularesGenero(&db, generos_para_teste);
 	usariosPorGenero(&db, generos_para_teste[0], 10, 20);
+	usuariosMaisJovems(&db, generos_para_teste, 1);
 	closeDB(&db);
 	return 0;
 }

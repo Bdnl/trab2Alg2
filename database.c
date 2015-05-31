@@ -22,6 +22,7 @@ void initDB(database_t *db) {
 	fclose(fopen(IDXFILENAME, "a"));
 	fclose(fopen(IDADEFILENAME, "a"));
 	fclose(fopen(GENEROSFILENAME, "a"));
+	fclose(fopen(TUFILENAME, "a"));
 	fclose(fopen(GENEROSTABLEFILENAME, "a"));
 	// carrega todos os idx
 	// carrega idx principal
@@ -45,6 +46,7 @@ void initDB(database_t *db) {
 	// carrega os indices secundarios
 	loadSecundaryIdx(db, &db->idx_idade, IDADEFILENAME);
 	loadSecundaryIdx(db, &db->idx_genero, GENEROSFILENAME);
+	loadSecundaryIdx(db, &db->idx_tu, TUFILENAME);
 	// carrega a table de generos
 	fd = fopen(GENEROSTABLEFILENAME, "r");
 	db->genero_table.num_node = _file_size(fd) / sizeof(genero_node_t);
@@ -247,6 +249,7 @@ int bsearchSecundary(secundary_t *secundary, id_type id) {
 	#ifdef DEBUG
 		printf("Iniciando a pesquisa binária no índice secundário, procurando por ID: '%d'\n", id);
 	#endif // DEBUG
+	// GARANTA QUE DB ESTÁ ORDENADO
 	int beg = 0;
 	int end = secundary->num_node-1;
 	while(beg <= end) {
@@ -329,6 +332,9 @@ void loadRegFromMemory(database_t *db, id_type id, registro_t *reg) {
 		}
 		reg->generos[i] = 0;
 	}
+	// carrega tu
+	sec_pos = bsearchSecundary(&db->idx_tu, id);
+	reg->tu = db->idx_tu.nodes[sec_pos].cod;
 }
 
 void ordenarDB(database_t *db) {

@@ -94,6 +94,8 @@ offset_t novoRegistro(database_t *db, registro_t *reg) {
 		newSecundaryIdx(db, &db->idx_genero, reg->generos[i], reg->id, GENEROSFILENAME);
 		i++;
 	}
+	// atualiza o registro secundario Tu
+	newSecundaryIdx(db, &db->idx_tu, reg->tu, reg->id, TUFILENAME);
 	// atualiza o indice primario
 	db->num_id++;
 	db->idx_id = realloc(db->idx_id, db->num_id * sizeof(idx_id_t));
@@ -183,6 +185,9 @@ offset_t pesquisarRegistro(database_t *db, id_type id) {
 bool removerRegistro(database_t *db, id_type id) {
 	// opcao 2
 	// ordena antes de remover
+	/* ====================================================
+	   PRECISA DE ALTERAÇÕES!!!
+	   ==================================================== */
 	setFlag(db, 1);
 	int i;
 	offset_t pos = pesquisarRegistro(db, id);
@@ -605,23 +610,6 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	return result;
 }
 
-/*
-
-*/
-bool eh_tipo(database_t *db, id_type id, tu_t tu) {
-	registro_t reg;
-	FILE *fd = abrirArquivoDB(db, "r");
-	offset_t pos = pesquisarRegistro(db, id);
-
-	if(pos == EOF) {
-		return false;
-	}
-	fseek(fd,  pos - 1, SEEK_SET);
-	lerRegistro(db, &reg);
-	fecharArquivoDB(db);
-
-	return (tu == reg.tu)? true : false;
-}
 /**
  * precisa de free
  * os 10 usuarios mais jovem de TU que curtem generos
@@ -631,39 +619,73 @@ bool eh_tipo(database_t *db, id_type id, tu_t tu) {
  */
 id_type *usuariosMaisJovems(database_t *db, genero_t *generos, tu_t tu) {
 	// opcao 5
-	idade_t idades[10];
+	section("TESTANDO A OPCAO 5");
 	id_type *result = calloc(10, sizeof(id_type));
-	FILE *fd = abrirArquivoDB(db, "r");
-	if(_file_size(fd) == 0) {
+	if(!temRegistro(db)) {
 		// o arquivo esta vazio
 		return result;
 	}
-	fecharArquivoDB(db);
+	idade_t idades[10];
 	int i = 0;
-	int j = 0;
-	// preenche as 10 primeiras idades
-	int num_id = db->num_id;
-	while(i < 10 && i < num_id && j < num_id) {
-		if (eh_tipo(db, db->idx_idade.nodes[j].id, tu) && pessoaCurteGeral(db, db->idx_idade.nodes[j].id, generos)) {
-			idades[i] = db->idx_idade.nodes[j].cod;
-			result[i] = db->idx_idade.nodes[j].id;
-			i++;
+	// ordena o arquivo
+	setFlag(db, 1);
+	registro_t reg;
+	// começa uma nova varredura
+	forAllIds(db, NULL);
+	// procura as pessoas que curtem os generos
+	// abre o arquivo para procurar o tu
+	while(i < 10) {
+		if(!forAllIds(db, &reg)) {
+			// acabaram as pessoas para serem comparadas
+			return result;
 		}
-		j++;
-	}
-	// varre os demais registros
-	while(i < num_id && i > 10) {
-		int j;
-		// testa as 10 idades, se alguma é menor do que a q está sendo analisada
-		for(j=0; j<10; j++) {
-			if(db->idx_idade.nodes[i].cod < idades[j] && eh_tipo(db, db->idx_idade.nodes[i].id, tu) && pessoaCurteGeral(db, db->idx_idade.nodes[i].id, generos)) {
-				idades[j] = db->idx_idade.nodes[i].cod;
-				result[j] = db->idx_idade.nodes[i].id;
-				break;
-			}
+		// se a pessoa não curte os generos e não tem o msmo Tu
+		if(!regCurteGeneros(&reg, generos) || reg.tu != tu) {
+			continue;
 		}
+		// passou em todos os testes
+		idades[i] = reg.idade;
+		result[i] = reg.id;
 		i++;
 	}
+	// procura o mais novo
+	int maior_idade = 0;
+	for(i=1; i<10; i++) {
+		if(idades[i] > idades[maior_idade]) {
+			maior_idade = i;
+		}
+	}
+	// varre os demais registros
+	while(forAllIds(db, &reg)) {
+		// se a pessoa não curte os generos e não tem o msmo Tu
+		if(!regCurteGeneros(&reg, generos) || reg.tu != tu) {
+			continue;
+		}
+		// passou em todos os testes
+		// se ele for mais velho do q o kra mais velho
+		if(reg.idade >= idades[maior_idade]) {
+			continue;
+		}
+		// se ele é mais novo
+		idades[maior_idade] = reg.idade;
+		result[maior_idade] = reg.id;
+		// procura o mais velho
+		maior_idade = 0;
+		int j;
+		for(j=1; j<10; j++) {
+			if(idades[j] > idades[maior_idade]) {
+				maior_idade = j;
+			}
+		}
+	}
+	#ifdef DEBUG
+		for(i=0; i<10; i++) {
+			if(result[i] == 0) {
+				break;
+			}
+			printf("Resultado opção 5, id: %d\n", result[i]);
+		}
+	#endif // DEBUG
 	return result;
 }
 
