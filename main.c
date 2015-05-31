@@ -393,6 +393,9 @@ void menu_6(database_t *db){
 
 	//Busca
 	generos_cod_result = generosPopularesIdade(db, idade_min, idade_max);
+	if (generos_cod_result == NULL) {
+		return;
+	}
 
 	//A imformação é passada de generos_cod_result para generos_result
 	strcpy(generos_result, generos_cod_result);
