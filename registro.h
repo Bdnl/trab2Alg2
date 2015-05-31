@@ -121,6 +121,7 @@ bool pessoaCurteGeral(database_t *db, id_type id, genero_t *generos);
 bool idCurteGenero(database_t *db, id_type id, genero_t genero);
 void fill_escutam(database_t *db, id_type *conj_pessoas, int *escutam);
 void idToRegistro(database_t *db, id_type id, registro_t *reg);
+bool eh_tipo(database_t *db, id_type id, tu_t tu);
 
 id_type* monta_conjuntoPopIdad(database_t *db, idade_t ini, idade_t fim);
 #endif
