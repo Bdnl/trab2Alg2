@@ -605,6 +605,23 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	return result;
 }
 
+/*
+
+*/
+bool eh_tipo(database_t *db, id_type id, tu_t tu) {
+	registro_t reg;
+	FILE *fd = abrirArquivoDB(db, "r");
+	offset_t pos = pesquisarRegistro(db, id);
+
+	if(pos == EOF) {
+		return false;
+	}
+	fseek(fd,  pos - 1, SEEK_SET);
+	lerRegistro(db, &reg);
+	fecharArquivoDB(db);
+
+	return (tu == reg.tu)? true : false;
+}
 /**
  * precisa de free
  * os 10 usuarios mais jovem de TU que curtem generos
@@ -623,19 +640,23 @@ id_type *usuariosMaisJovems(database_t *db, genero_t *generos, tu_t tu) {
 	}
 	fecharArquivoDB(db);
 	int i = 0;
+	int j = 0;
 	// preenche as 10 primeiras idades
 	int num_id = db->num_id;
-	while(i < 10 || i < num_id) {
-		idades[i] = db->idx_idade.nodes[i].cod;
-		result[i] = db->idx_idade.nodes[i].id;
-		i++;
+	while(i < 10 && i < num_id && j < num_id) {
+		if (eh_tipo(db, db->idx_idade.nodes[j].id, tu) && pessoaCurteGeral(db, db->idx_idade.nodes[j].id, generos)) {
+			idades[i] = db->idx_idade.nodes[j].cod;
+			result[i] = db->idx_idade.nodes[j].id;
+			i++;
+		}
+		j++;
 	}
 	// varre os demais registros
-	while(i < num_id) {
+	while(i < num_id && i > 10) {
 		int j;
 		// testa as 10 idades, se alguma é menor do que a q está sendo analisada
 		for(j=0; j<10; j++) {
-			if(db->idx_idade.nodes[i].cod < idades[j]) {
+			if(db->idx_idade.nodes[i].cod < idades[j] && eh_tipo(db, db->idx_idade.nodes[i].id, tu) && pessoaCurteGeral(db, db->idx_idade.nodes[i].id, generos)) {
 				idades[j] = db->idx_idade.nodes[i].cod;
 				result[j] = db->idx_idade.nodes[i].id;
 				break;

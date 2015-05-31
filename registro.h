@@ -187,6 +187,7 @@ genero_t generoStrToCod(database_t *db, char *str);
  */
 void generosStrToCod(database_t *db, char *str);
 
+<<<<<<< HEAD
 /**
  * Converte Cod para uma string
  * @param  db  inicializado previamente
@@ -195,6 +196,17 @@ void generosStrToCod(database_t *db, char *str);
  * @return     strlen(str)
  */
 uint generoCodToStr(database_t *db, genero_t cod, char *str);
+=======
+uint generoCodToStr(database_t *db, genero_t cod, char *str);
+void generosCodToStr(database_t *db, char *str);
+
+id_type* monta_conjuntoGeneros(database_t *db, genero_t *generos);
+bool pessoaCurteGeral(database_t *db, id_type id, genero_t *generos);
+bool idCurteGenero(database_t *db, id_type id, genero_t genero);
+void fill_escutam(database_t *db, id_type *conj_pessoas, int *escutam);
+void idToRegistro(database_t *db, id_type id, registro_t *reg);
+bool eh_tipo(database_t *db, id_type id, tu_t tu);
+>>>>>>> f887082a104c6ba2d96fed24a9ec2abfd57797c0
 
 /**
  * converte de código para string com arrobas
