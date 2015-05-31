@@ -397,7 +397,7 @@ void menu_6(database_t *db){
 		return;
 	}
 
-	//A imformação é passada de generos_cod_result para generos_result
+	//A informação é passada de generos_cod_result para generos_result
 	strcpy(generos_result, generos_cod_result);
 	free(generos_cod_result);	//Malloc foi feito na função generosPopularesIdade
 	

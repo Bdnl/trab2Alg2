@@ -116,6 +116,9 @@ genero_t generoStrToCod(database_t *db, char *str);
  */
 void generosStrToCod(database_t *db, char *str);
 
+uint generoCodToStr(database_t *db, genero_t cod, char *str);
+void generosCodToStr(database_t *db, char *str);
+
 id_type* monta_conjuntoGeneros(database_t *db, genero_t *generos);
 bool pessoaCurteGeral(database_t *db, id_type id, genero_t *generos);
 bool idCurteGenero(database_t *db, id_type id, genero_t genero);
