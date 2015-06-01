@@ -239,7 +239,7 @@ void menu_3(database_t *db){
 	//Pesquisar usuario e verificar se o mesmo existe
 	// ordena antes de pesquisar
 	setFlag(db, 1);
-	offset_pesq = pesquisarRegistro(db, id);
+	offset_pesq = idToRegistro(db, id, &reg_pesq);
 	if(offset_pesq == -1){
 		printf("Falha: ID nao encontrado\n");
 		system_pause();
@@ -250,10 +250,6 @@ void menu_3(database_t *db){
 
 	//Deslocar db para a posição offset_pesq, 
 	//ler o registro e imprimir os dados
-	abrirArquivoDB(db, "r");
-	fseek((db->file_db), (offset_pesq - 1), SEEK_SET);
-	lerRegistro(db, &reg_pesq);
-	fecharArquivoDB(db);
 
 	printf("\n%d\n", reg_pesq.id);
 	printf("%s\n", reg_pesq.nome);

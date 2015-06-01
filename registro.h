@@ -111,7 +111,7 @@ Váriaveis:
 	buffer- buffer do registro da pessoa em questão
 	reg_size- tamanho do registro
 */
-void idToRegistro(database_t *db, id_type id, registro_t *reg);
+offset_t idToRegistro(database_t *db, id_type id, registro_t *reg);
 
 /*
 Função que verifica se uma pessoa curte um determinado gênero pelo seu id

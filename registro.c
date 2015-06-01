@@ -420,15 +420,19 @@ Váriaveis:
 	buffer- buffer do registro da pessoa em questão
 	reg_size- tamanho do registro
 */
-void idToRegistro(database_t *db, id_type id, registro_t *reg) {
+offset_t idToRegistro(database_t *db, id_type id, registro_t *reg) {
 	FILE *db_file;
-
+	int pos = pesquisarRegistro(db, id);
+	if(pos == -1) {
+		return -1;
+	}
 	//Lê o registro em questão de acordo com o offset do arquivo de índex primário
 	db_file = abrirArquivoDB(db, "r");
-	int pos = db->idx_id[pesquisarRegistro(db, id)].offset-1;
-	fseek(db_file, pos, SEEK_SET);
+	offset_t offset = db->idx_id[pos].offset-1;
+	fseek(db_file, offset, SEEK_SET);
 	lerRegistro(db, reg);
 	fecharArquivoDB(db);
+	return offset;
 }
 
 /*
