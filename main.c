@@ -15,6 +15,13 @@
 #include "misc.h"
 #include "database.h"
 
+// defina interface de usuário para ter uma interface amigável
+// #define MENU_IU
+
+#ifndef MENU_IU
+	#define system_pause() ;
+#endif // MENU_IU
+
 #ifndef TEST
 
 /**
@@ -22,14 +29,16 @@
  * @param subtitulo:	string com o subtítulo da página
 */
 void titulo(char * subtitulo){
-	#ifndef DEBUG
-		clear();
-	#endif
-	printf("**GERENCIADOR DE USUÁRIOS**\n");
-	if(strcmp(subtitulo, "_")){
-		printf("%s\n", subtitulo);
-	}
-	printf("======================================================\n\n");
+	#ifdef MENU_IU
+		#ifndef DEBUG
+			clear();
+		#endif
+		printf("**GERENCIADOR DE USUÁRIOS**\n");
+		if(strcmp(subtitulo, "_")){
+			printf("%s\n", subtitulo);
+		}
+		printf("======================================================\n\n");
+	#endif // MENU_IU
 }
 
 /**
@@ -109,7 +118,9 @@ void menu_1(database_t *db){
 
 	titulo("Inserir usuário");
 	//ID
-	printf("\nID:");
+	#ifdef MENU_IU
+		printf("\nID:");
+	#endif // MENU_IU
 	_scanf_s(eh_valido, 15);
 	if(teste_id(eh_valido)) {
 		new_reg.id = atoi(eh_valido);
@@ -122,7 +133,9 @@ void menu_1(database_t *db){
 	printf("Nome:");
 	_scanf_s(new_reg.nome, NOMESIZE);
 	//Idade
-	printf("Idade:");
+	#ifdef MENU_IU
+		printf("Idade:");
+	#endif // MENU_IU
 	_scanf_s(eh_valido, 10);
 	if(teste_idade(eh_valido)) {
 		new_reg.idade = atoi(eh_valido);
@@ -133,7 +146,9 @@ void menu_1(database_t *db){
 	}
 	
 	//Sexo
-	printf("Sexo:");
+	#ifdef MENU_IU
+		printf("Sexo:");
+	#endif // MENU_IU
 	_scanf_s(eh_valido, 10);
 	if(teste_sexo(eh_valido)) {
 		new_reg.sexo = eh_valido[0];
@@ -144,14 +159,18 @@ void menu_1(database_t *db){
 	}
 	
 	//Gêneros
-	printf("Gêneros:");
+	#ifdef MENU_IU
+		printf("Gêneros:");
+	#endif // MENU_IU
 	_scanf_s(new_reg.generos, GENSIZE);
 	if(new_reg.generos[0] == '\0') {
 		strcpy(new_reg.generos, "unknown");
 	}
 	
 	//Tipo de usuário
-	printf("Tipo de usuário:");
+	#ifdef MENU_IU
+		printf("Tipo de usuário:");
+	#endif // MENU_IU
 	_scanf_s(eh_valido, 10);
 	if(teste_tu(eh_valido)) {
 		new_reg.tu = atoi(eh_valido);
@@ -197,7 +216,9 @@ void menu_2(database_t *db){
 	titulo("Remover usuário");
 
 	//Ler e validar ID
-	printf("ID:");
+	#ifdef MENU_IU
+		printf("ID:");
+	#endif // MENU_IU
 	_scanf_s(eh_valido, 15);
 	if(!teste_id(eh_valido)){
 		printf("Falha: ID em formato invalido\n");
@@ -232,7 +253,9 @@ void menu_3(database_t *db){
 	titulo("Pesquisar usuário");
 
 	//Ler e validar ID
-	printf("ID:");
+	#ifdef MENU_IU
+		printf("ID:");
+	#endif // MENU_IU
 	_scanf_s(eh_valido, 15);
 	if(!teste_id(eh_valido)){
 		printf("Falha: ID em formato invalido\n");
@@ -252,12 +275,14 @@ void menu_3(database_t *db){
 		return;
 	}
 
-	printf("%ld\n", offset_pesq);
+	#ifdef MENU_IU
+		printf("%ld\n\n", offset_pesq);
+	#endif // MENU_IU
 
 	//Deslocar db para a posição offset_pesq, 
 	//ler o registro e imprimir os dados
 
-	printf("\n%d\n", reg_pesq.id);
+	printf("%d\n", reg_pesq.id);
 	printf("%s\n", reg_pesq.nome);
 	printf("%d\n", reg_pesq.idade);
 	printf("%c\n", reg_pesq.sexo);
@@ -281,7 +306,9 @@ void menu_4(database_t *db){
 	titulo("Buscar gostos musicais semelhantes");
 
 	//Lê a string de gêneros
-	printf("Gêneros:");
+	#ifdef MENU_IU
+		printf("Gêneros:");
+	#endif // MENU_IU
 	_scanf_s(generos_pesq, GENSIZE);
 	if(generos_pesq[0] == '\0') {
 		return;
@@ -301,7 +328,9 @@ void menu_4(database_t *db){
 	generosCodToStr(db, generos_result);
 	
 	//Imprime uma gênero por linha
-	printf("\nResultado:\n");
+	#ifdef MENU_IU
+		printf("\nResultado:\n");
+	#endif // MENU_IU
 	int i=0;
 	while(generos_result[i]){
 		if(generos_result[i] != '@') {
@@ -331,14 +360,18 @@ void menu_5(database_t *db){
 	titulo("Buscar usuários mais jovens");
 
 	//Lê a string de gêneros
-	printf("Gêneros:");
+	#ifdef MENU_IU
+		printf("Gêneros:");
+	#endif // MENU_IU
 	_scanf_s(generos_pesq, GENSIZE);
 	if(generos_pesq[0] == '\0') {
 		return;
 	}
 
 	//Lê o tipo de usuário
-	printf("Tipo de usuário:");
+	#ifdef MENU_IU
+		printf("Tipo de usuário:");
+	#endif // MENU_IU
 	_scanf_s(eh_valido, 10);
 	if(teste_tu(eh_valido)) {
 		tu_pesq = atoi(eh_valido);
@@ -356,7 +389,9 @@ void menu_5(database_t *db){
 	id_result = usuariosMaisJovems(db, generos_pesq, tu_pesq);
 
 	//Imprime os IDs
-	printf("\nIDs:\n");
+	#ifdef MENU_IU
+		printf("\nIDs:\n");
+	#endif // MENU_IU
 	int i = 0;
 	while(i < 10) {
 		if(id_result[i] == 0) {
@@ -384,9 +419,13 @@ void menu_6(database_t *db){
 	titulo("Buscar gêneros mais populares");
 
 	//Lê e valida as idades mínima e máxima
-	printf("Idade mínima:");
+	#ifdef MENU_IU
+		printf("Idade mínima:");
+	#endif // MENU_IU
 	_scanf_s(eh_valido1, 10);
-	printf("Idade máxima:");
+	#ifdef MENU_IU
+		printf("Idade máxima:");
+	#endif // MENU_IU
 	_scanf_s(eh_valido2, 10);
 
 	if(teste_idade(eh_valido1) && teste_idade(eh_valido2)){
@@ -413,7 +452,9 @@ void menu_6(database_t *db){
 	generosCodToStr(db, generos_result);
 	
 	//Imprime uma gênero por linha
-	printf("\nResultado:\n");
+	#ifdef MENU_IU
+		printf("\nResultado:\n");
+	#endif // MENU_IU
 	int i=0;
 	while(generos_result[i]){
 		if(generos_result[i] != '@') {
@@ -444,9 +485,13 @@ void menu_7(database_t *db){
 	titulo("Buscar usuários por idade e gênero");
 
 	//Lê e valida as idades mínima e máxima
-	printf("Idade mínima:");
+	#ifdef MENU_IU
+		printf("Idade mínima:");
+	#endif // MENU_IU
 	_scanf_s(eh_valido1, 10);
-	printf("Idade máxima:");
+	#ifdef MENU_IU
+		printf("Idade máxima:");
+	#endif // MENU_IU
 	_scanf_s(eh_valido2, 10);
 
 	if(teste_idade(eh_valido1) && teste_idade(eh_valido2)){
@@ -459,7 +504,9 @@ void menu_7(database_t *db){
 	}
 
 	//Lê a string de gêneros
-	printf("Gêneros:");
+	#ifdef MENU_IU
+		printf("Gêneros:");
+	#endif // MENU_IU
 	_scanf_s(genero_pesq, GENSIZE);
 	if(genero_pesq[0] == '\0') {
 		return;
@@ -473,7 +520,9 @@ void menu_7(database_t *db){
 	id_result = usariosPorGenero(db, (*genero_pesq), idade_min, idade_max);	
 
 	//Imprime os IDs
-	printf("\nIDs:\n");
+	#ifdef MENU_IU
+		printf("\nIDs:\n");
+	#endif // MENU_IU
 	int i = 0;
 	while(id_result[i]){
 		printf("%d\n", id_result[i]);
@@ -497,14 +546,16 @@ int menu_principal(database_t *db){
 	titulo("_");
 
 	//Opções do menu
-	printf("1. Inserir usuário\n");
-	printf("2. Remover usuário\n");
-	printf("3. Pesquisar usuário\n");
-	printf("4. Buscar gostos musicais semelhantes\n");
-	printf("5. Buscar usuários mais jovens\n");
-	printf("6. Buscar gêneros mais populares\n");
-	printf("7. Buscar usuários por idade e gênero\n");
-	printf("8. Fechar o programa\n");
+	#ifdef MENU_IU
+		printf("1. Inserir usuário\n");
+		printf("2. Remover usuário\n");
+		printf("3. Pesquisar usuário\n");
+		printf("4. Buscar gostos musicais semelhantes\n");
+		printf("5. Buscar usuários mais jovens\n");
+		printf("6. Buscar gêneros mais populares\n");
+		printf("7. Buscar usuários por idade e gênero\n");
+		printf("8. Fechar o programa\n");
+	#endif // MENU_IU
 
 	//opcao recebe a escolha do usuário
 	opcao = _getchar();
