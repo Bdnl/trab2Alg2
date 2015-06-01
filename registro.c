@@ -76,7 +76,7 @@ offset_t novoRegistro(database_t *db, registro_t *reg) {
 		return EOF;
 	}
 	// volta a flag para zero
-	setFlag(db, 0);
+	setOrdenado(db, 0);
 	FILE *fd = abrirArquivoDB(db, "a");
 	// offset indica o valor do primeiro caracter no arquivo
 	offset_t offset = ftell(fd) + 1;
@@ -216,7 +216,7 @@ bool removerRegistro(database_t *db, id_type id) {
 	removerSecondary(db, &db->idx_tu, id, TUFILENAME);
 
 	// diz q o registro está desordenado
-	setFlag(db, 0);
+	setOrdenado(db, 0);
 	return true;
 }
 
@@ -310,7 +310,7 @@ genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
 	int escutam[GENSIZE] = {0};
 	//Monta o conjunto de pessoas na faixa etária dada
 	// ordena o arquivo
-	setFlag(db, 1);
+	setOrdenado(db, 1);
 	registro_t reg;
 	forEachId(db, NULL);
 	while(forEachId(db, &reg)) {
@@ -387,7 +387,7 @@ id_type *usariosPorGenero(database_t *db, genero_t genero, idade_t ini, idade_t 
 		return result;
 	}
 
-	setFlag(db, 1);
+	setOrdenado(db, 1);
 	// inicia a varredura
 	forEachId(db, NULL);
 	registro_t reg;
@@ -544,7 +544,7 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	int escutam[GENSIZE] = {0};
 	//Monta o conjunto que contém as pessoas que escutam os gêneros
 	// ordena
-	setFlag(db, 1);
+	setOrdenado(db, 1);
 	registro_t reg;
 	forEachId(db, NULL);
 	while(forEachId(db, &reg)) {
@@ -617,7 +617,7 @@ id_type *usuariosMaisJovems(database_t *db, genero_t *generos, tu_t tu) {
 	idade_t idades[10];
 	int i = 0;
 	// ordena o arquivo
-	setFlag(db, 1);
+	setOrdenado(db, 1);
 	registro_t reg;
 	// começa uma nova varredura
 	forEachId(db, NULL);

@@ -177,5 +177,5 @@ void ordenarDB(database_t *db);
  * @param db   inicializado previamente
  * @param flag nova flag
  */
-void setFlag(database_t *db, char flag);
+void setOrdenado(database_t *db, char flag);
 #endif

@@ -238,7 +238,7 @@ void menu_3(database_t *db){
 
 	//Pesquisar usuario e verificar se o mesmo existe
 	// ordena antes de pesquisar
-	setFlag(db, 1);
+	setOrdenado(db, 1);
 	offset_pesq = idToRegistro(db, id, &reg_pesq);
 	if(offset_pesq == -1){
 		printf("Falha: ID nao encontrado\n");

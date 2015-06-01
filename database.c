@@ -332,7 +332,7 @@ void ordenarSecundario(database_t *db, secondary_t *secondary, FILE *fd) {
 }
 
 void loadRegFromMemory(database_t *db, id_type id, registro_t *reg) {
-	setFlag(db, 1);
+	setOrdenado(db, 1);
 	reg->id = id;
 	// carrega a idade
 	int sec_pos = bsearchSecondary(&db->idx_idade, id);
@@ -439,7 +439,7 @@ void ordenarDB(database_t *db) {
  * @param db   inicializado previamente
  * @param flag nova flag
  */
-void setFlag(database_t *db, char flag) {
+void setOrdenado(database_t *db, char flag) {
 	if(db->ordenado == flag) {
 		// já é igual, não precisa fazer nada
 		return ;
