@@ -1,0 +1,79 @@
+<meta charset="utf-8">
+<pre>
+<script src="seedrandom.min.js"></script>
+<script>
+(function () {
+	// seed para numeros aleatórios
+	Math.seedrandom('Que bosta de trabalho');
+
+	var randomInt = function (min, max) {
+		return parseInt(Math.random() * (max + 1 - min) + min);
+	};
+
+	var Generos = [
+		'Rock',
+		'Funk',
+		'Opera',
+		'Infantil',
+		'Punk',
+		'Eletronica',
+		'Sertanejo',
+		'Samba',
+		'Bossa Nova',
+		'Pop',
+		'MPB',
+		'Metal',
+		'Dance',
+		'Rap',
+		'Hip-hop',
+		'Cult',
+		'Clássica',
+		'Instrumental',
+		'Pagode'
+	];
+	var Nomes = ["Murillo", "Guilherme", "Julio", "Natália", "Henrique", "Tiago", "Mateus", "Gabriel", "Konrad", "Lucas", "Rosival", "Camila", "Octávio", "Yago", "Caique", "Pedro", "Carlos", "Guilherme", "Enrico", "William", "Afonso", "Alexandre", "Matheus", "Eric", "Rafael", "Fernando", "Gustavo", "Guilherme", "Matheus", "Gustavo", "Fabio", "Guilherme", "Marlon", "Vitor", "Lucas", "Lais", "Yudi", "Jéssica", "Pedro", "Guilherme", "Christian", "Ygor", "Vitor", "João", "Lucas", "Pedro", "Iago", "Paulo", "Victor", "Thiago", "Renan", "Fabrício", "Adailto", "Arthur", "Leonardo", "Guilherme", "Lucas", "Afonso", "Zhi", "André", "Vitor", "Bruno", "João", "Matheus", "Silvana", "Guilherme", "Luiza", "Gustavo", "Bruno", "Cassiano", "Wesley", "Lucas", "André", "Lucas", "Giovanni", "Lucas", "Guilherme", "Raphael", "Caio", "Lucas", "Sérgio", "Sindélio", "Tamura", "Felipe", "Laís", "Otávio", "Klaus", "Murilo", "Rafael", "Cristiano", "Laíse", "Carlos", "Gustavo", "Bruno", "Gustavo", "Fernando", "Arthur", "Ewerton", "Leonardo", "Amanda", "Lucas", "Miguel", "Angelito", "Jefferson", "Gustavo", "Antonio", "Guilherme", "Carla", "Raphael", "Pedro", "Luiz", "Mauricio", "Guilherme", "Murilo", "Pedro", "Andre", "Joao", "Kollins"];
+	var Sobrenomes = ["Mesquita", "Momesso", "Cesar", "Aravéquia", "Bonini", "Lemes", "Ribeiro", "Capizani", "Aleixo", "Clarim", "Neto", "Stenico", "Iozzi", "Dórea", "Honorio", "Fernandez", "Eduardo", "Pelizer", "Sebastiani", "Ribeiro", "Celso", "Bueno", "Borghi", "Tortoza", "Fayan", "Tristão", "Lima", "Prearo", "Claudino", "Nicolau", "Sumida", "Milan", "Jordan", "Bertozzi", "Lemos", "Novelli", "Nakazaki", "Aissa", "Virgilio", "Ulian", "Tobler", "Sad", "Ribeiro", "Victor", "Sossai", "Henrique", "Carvalho", "Humberto", "Palombo", "Pacheco", "Strano", "Pereira", "A", "Lolico", "Moura", "José", "Baptistella", "Henrique", "Ming", "Paiusco", "Albuquerque", "Stefano", "Pedro", "Souza", "Wick", "Fonseca", "Vilas", "Okuda", "Cepeda", "Zaghi", "Wolak", "Tomazela", "Lui", "André", "Giansante", "Magalhães", "Dória", "Gontijo", "Correia", "Luchiari", "Baptista", "Henrique", "Shuten", "Diniz", "Pc", "Sumi", "Borges", "Pratavieira", "Mariano", "José", "Aquino", "Martinez", "Smarito", "Sugui", "Livrare", "Lima", "E", "Stanzani", "Duran", "Do", "Ferrari", "Lobo", "Zego", "Boldrin", "Jose", "Marcos", "Freitas", "Nunes", "Kohn", "P.", "Pedro", "Fonseca", "Bergamin", "Cruz", "Carrascosa", "Antunes", "Victor", "Lima"];
+
+	var i;
+	var NumRegistros = 50000;
+	for(i=0; i<NumRegistros; i++) {
+		// opção de inserir
+		document.write('1\n');
+
+		// ID
+		document.write((i+1)+'\n');
+		// nome e sobrenome
+		document.write(
+			Nomes[randomInt(0, Nomes.length-1)]
+			+' '+
+			Sobrenomes[randomInt(0, Sobrenomes.length-1)]+'\n'
+		);
+
+		// idade
+		document.write(randomInt(10, 60)+'\n');
+
+		// sexo, foda-se
+		document.write('M\n');
+
+		var numGeneros = randomInt(0, 5);
+		if(numGeneros == 0) {
+			document.write('unknown\n')
+		} else {
+			var generos = [];
+			var j;
+			for(j=0; j<numGeneros; j++) {
+				generos.push(Generos[randomInt(0, Generos.length-1)]);
+			}
+			document.write(generos.join('@')+'\n');
+		}
+
+		// Tu
+		document.write(randomInt(1, 3)+'\n');
+		document.write('\n');
+	}
+
+	// fim do programa
+	document.write('8');
+}());
+</script>
+</pre>
