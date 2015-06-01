@@ -1,3 +1,9 @@
+/**
+ * Leonardo Guarnieri de Bastiani  8910434
+ * Guilherme José Acra             7150306
+ * Ricardo Chagas                  8957242
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -17,6 +23,12 @@
 void initDB(database_t *db) {
 	// zera completamente db
 	memset(db, 0, sizeof(database_t));
+	if(file_exists(DBFILENAME) && !file_exists(IDXFILENAME)) {
+		// se o arquivo de dados existe e os arquivos de índice não
+		// cria os arquvos de índice
+		criarIndiceComFileDB(db);
+		return ;
+	}
 	// abre o arquivo para garantir que ele vai existir
 	fclose(fopen(DBFILENAME, "a"));
 	fclose(fopen(IDXFILENAME, "a"));
@@ -417,11 +429,13 @@ void ordenarDB(database_t *db) {
 	// atualiza os arquivos
 	FILE *fd = abrirArquivoIdx(db, "w");
 	fputc(1, fd); // flag de ordenado
-	fwrite(db->idx_id, sizeof(idx_id_t), db->num_id, fd);
+	if(db->num_id != 0) {
+		fwrite(db->idx_id, sizeof(idx_id_t), db->num_id, fd);
+	}
 	fecharArquivoIdx(db);
 	#ifdef DEBUG
 		section("IMPRIMINDO INDICES");
-		printf("Indice primário\n");
+		printf("Indice primário, num_id: %d\n", db->num_id);
 		int i;
 		for(i=0; i<db->num_id; i++) {
 			printf("%2d => %2ld\n", db->idx_id[i].id, db->idx_id[i].offset);
@@ -448,14 +462,69 @@ void setOrdenado(database_t *db, char flag) {
 	if(flag == 1) {
 		// se for para ordenar, que ordene!!
 		ordenarDB(db);
+	} else {
+		// seta a nova flag para zero
+		db->ordenado = flag;
+		FILE *fd = abrirArquivoIdx(db, "r+");
+		// insere no arquivo idx o status da flag
+		fputc(flag, fd);
+		fecharArquivoIdx(db);
 	}
 	#ifdef DEBUG
 		printf("Modificando a FLAG para '%d'\n", flag);
 	#endif // DEBUG
-	// seta a nova flag
-	db->ordenado = flag;
-	FILE *fd = abrirArquivoIdx(db, "r+");
-	// insere no arquivo idx o status da flag
-	fputc(flag, fd);
+}
+
+void novoIndice(database_t *db, registro_t *reg, offset_t offset) {
+	// atualiza o registro secundario idade
+	newSecondaryIdx(db, &db->idx_idade, reg->idade, reg->id, IDADEFILENAME);
+	// atualiza o registro secundario de generos
+	int i = 0;
+	while(reg->generos[i]) {
+		newSecondaryIdx(db, &db->idx_genero, reg->generos[i], reg->id, GENEROSFILENAME);
+		i++;
+	}
+	// atualiza o registro secundario Tu
+	newSecondaryIdx(db, &db->idx_tu, reg->tu, reg->id, TUFILENAME);
+	// atualiza o indice primario
+	db->num_id++;
+	db->idx_id = realloc(db->idx_id, db->num_id * sizeof(idx_id_t));
+	idx_id_t *idx_id = db->idx_id + db->num_id - 1;
+	idx_id->id = reg->id;
+	idx_id->offset = offset;
+	#ifdef DEBUG
+		printf("Novo índice para o ID: %d => %d\n", idx_id->id, idx_id->offset);
+	#endif // DEBUG
+	// abre o arquivo de idx principal
+	// insere no final
+	FILE *fd = abrirArquivoIdx(db, "a");
+	fwrite(idx_id, sizeof(idx_id_t), 1, fd);
 	fecharArquivoIdx(db);
+}
+
+void criarIndiceComFileDB(database_t *db) {
+	#ifdef DEBUG
+		printf("Recriando o índice\n");
+	#endif // DEBUG
+	// insere a flag no arquivo
+	FILE *fd = abrirArquivoIdx(db, "w");
+	// insere no arquivo idx o status da flag
+	fputc(0, fd);
+	fecharArquivoIdx(db);
+	// insere todos os índices nos arquivos
+	// lê sequencialmente o arquivo principal
+	abrirArquivoDB(db, "r");
+	offset_t offset;
+	registro_t reg;
+	while((offset = lerRegistro(db, &reg)) != EOF) {
+		if(reg.id == 0) {
+			continue;
+		}
+		novoIndice(db, &reg, offset);
+	}
+	fecharArquivoDB(db);
+	// fecha a conexão
+	closeDB(db);
+	// reabre
+	initDB(db);
 }

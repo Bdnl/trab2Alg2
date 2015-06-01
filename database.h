@@ -178,4 +178,8 @@ void ordenarDB(database_t *db);
  * @param flag nova flag
  */
 void setOrdenado(database_t *db, char flag);
+
+void novoIndice(database_t *db, registro_t *reg, offset_t offset);
+
+void criarIndiceComFileDB(database_t *db);
 #endif

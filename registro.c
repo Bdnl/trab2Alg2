@@ -1,3 +1,9 @@
+/**
+ * Leonardo Guarnieri de Bastiani  8910434
+ * Guilherme José Acra             7150306
+ * Ricardo Chagas                  8957242
+ */
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -86,27 +92,8 @@ offset_t novoRegistro(database_t *db, registro_t *reg) {
 	fputc(buffer_size, fd);
 	fwrite(buffer, sizeof(char), buffer_size, fd);
 	fecharArquivoDB(db);
-	// atualiza o registro secundario idade
-	newSecondaryIdx(db, &db->idx_idade, reg->idade, reg->id, IDADEFILENAME);
-	// atualiza o registro secundario de generos
-	int i = 0;
-	while(reg->generos[i]) {
-		newSecondaryIdx(db, &db->idx_genero, reg->generos[i], reg->id, GENEROSFILENAME);
-		i++;
-	}
-	// atualiza o registro secundario Tu
-	newSecondaryIdx(db, &db->idx_tu, reg->tu, reg->id, TUFILENAME);
-	// atualiza o indice primario
-	db->num_id++;
-	db->idx_id = realloc(db->idx_id, db->num_id * sizeof(idx_id_t));
-	idx_id_t *idx_id = db->idx_id + db->num_id - 1;
-	idx_id->id = reg->id;
-	idx_id->offset = offset;
-	// abre o arquivo de idx principal
-	// insere no final
-	fd = abrirArquivoIdx(db, "a");
-	fwrite(idx_id, sizeof(idx_id_t), 1, fd);
-	fecharArquivoIdx(db);
+	
+	novoIndice(db, reg, offset);
 }
 
 /**
@@ -114,7 +101,7 @@ offset_t novoRegistro(database_t *db, registro_t *reg) {
  * o cursor do arquivo deve estar apontado para a posição anterior do primeiro byte do registro
  * @param  db  previamente inicializada
  * @param  reg nao necessariamente inicializado, será alterada
- * @return     a pos~ição do primeiro byte do registro ou EOF caso erro
+ * @return     a posição do primeiro byte do registro ou EOF caso erro
  */
 offset_t lerRegistro(database_t *db, registro_t *reg) {
 	FILE *fd = db->file_db;
@@ -206,9 +193,9 @@ bool removerRegistro(database_t *db, id_type id) {
 	db->idx_id[pos].id = 0;
 	// remove no arquivo
 	fd = abrirArquivoIdx(db, "r+");
-	fseek(fd, pos * sizeof(idx_id_t), SEEK_SET);
+	fseek(fd, pos * sizeof(idx_id_t) + 1, SEEK_SET); // mais pra pular a flag
 	fwrite(db->idx_id+pos, sizeof(idx_id_t), 1, fd);
-	fecharArquivoDB(db);
+	fecharArquivoIdx(db);
 
 	// removendo índices secundários
 	removerSecondary(db, &db->idx_idade, id, IDADEFILENAME);
@@ -567,9 +554,18 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	}
 
 	// define que os 3 maiores sao os 3 primeiros
-	int i;
-	for(i=0; i<3; i++) {
-		result[i] = i+1;
+	int i = 0;
+	int j = 0;
+	while(j < 3 && i < GENSIZE) {
+		if(escutam[i] != 0) {
+			result[j] = i+1;
+			j++;
+		}
+		i++;
+	}
+	if(j < 3) {
+		// varreu todos os generos
+		return result;
 	}
 	// posicao do genero menos curtido em result
 	int menos_curtido = 0;
