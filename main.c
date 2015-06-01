@@ -352,7 +352,10 @@ void menu_5(database_t *db){
 	//Imprime os IDs
 	printf("\nIDs:\n");
 	int i = 0;
-	while(id_result[i]){
+	while(i < 10) {
+		if(id_result[i] == 0) {
+			break;
+		}
 		printf("%d\n", id_result[i]);
 		i++;
 	}
@@ -396,7 +399,8 @@ void menu_6(database_t *db){
 	}
 
 	//A informação é passada de generos_cod_result para generos_result
-	strcpy(generos_result, generos_cod_result);
+	memcpy(generos_result, generos_cod_result, 10);
+	generos_result[10] = 0; // garante q o ultimo elemnto vai ser zero
 	free(generos_cod_result);	//Malloc foi feito na função generosPopularesIdade
 	
 	//Transforma o vetor de códigos na string dos gêneros e imprime

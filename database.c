@@ -231,6 +231,7 @@ void closeDB(database_t *db) {
 	// libera na memória
 	freeSecondaryIdx(&db->idx_idade);
 	freeSecondaryIdx(&db->idx_genero);
+	freeSecondaryIdx(&db->idx_tu);
 	free(db->idx_id);
 }
 

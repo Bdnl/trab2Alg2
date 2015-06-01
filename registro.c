@@ -321,9 +321,18 @@ genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
 		preencheEscutam(&reg, escutam);
 	}
 	// define que os dez maiores sao os dez primeiros
-	int i;
-	for(i=0; i<10; i++) {
-		result[i] = i+1;
+	int i = 0;
+	int j = 0;
+	while(j < 10 && i < GENSIZE) {
+		if(escutam[i] != 0) {
+			result[j] = i+1;
+			j++;
+		}
+		i++;
+	}
+	if(j < 10) {
+		// varreu todos os generos
+		return result;
 	}
 	// posicao do genero menos curtido em result
 	int menos_curtido = 0;
@@ -406,7 +415,7 @@ id_type *usariosPorGenero(database_t *db, genero_t genero, idade_t ini, idade_t 
 	}
 	// aloca mais um para o 0 no final
 	result = _realloc(result, (result_size+1) * sizeof(id_type));
-	result[result_size-1] = 0;
+	result[result_size] = 0;
 	return result;
 }
 
