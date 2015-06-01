@@ -25,3 +25,4 @@ clear:
 	rm $(EXECUTABLE)
 	rm *.dat
 	rm *.o
+	make run < nomesteste.txt

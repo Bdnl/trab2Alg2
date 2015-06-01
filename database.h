@@ -1,7 +1,7 @@
 #ifndef __DATABASE_H__
 #define __DATABASE_H__
 
-#define TEST // defina isto para fazer casos de teste
+// #define TEST // defina isto para fazer casos de teste
 
 #define DBFILENAME "db.dat"
 #define IDXFILENAME "idx.dat"
@@ -30,12 +30,12 @@ typedef struct {
 typedef struct {
 	int cod; // codigo do registro secundario
 	id_type id;
-} secundary_node_t;
+} secondary_node_t;
 
 typedef struct {
-	secundary_node_t *nodes;
+	secondary_node_t *nodes;
 	uint num_node; // quantidade de nós
-} secundary_t;
+} secondary_t;
 
 typedef struct {
 	char str[GENSIZE];
@@ -57,9 +57,9 @@ typedef struct {
 	idx_id_t *idx_id; // lista com todos os id e seus offset
 	uint num_id; // quantidade de ids
 	int ordenado; // diz se os arquivos de indice estão ordenados, é int pq usa fgetc e pode retornar -1
-	secundary_t idx_idade;
-	secundary_t idx_genero;
-	secundary_t idx_tu;
+	secondary_t idx_idade;
+	secondary_t idx_genero;
+	secondary_t idx_tu;
 
 	genero_table_t genero_table;
 } database_t;
@@ -111,31 +111,31 @@ void fecharArquivoGeneros(database_t *db);
  * inicializa um nó de índices secundarios
  * @param node necessariamente não inicializada
  */
-void initSecundaryNode(secundary_node_t *node);
+void initSecondaryNode(secondary_node_t *node);
 
 /**
  * cria um novo índice secundário
  * @param db        previamente inicializada
- * @param secundary previamente inicializada
+ * @param secondary previamente inicializada
  * @param cod       cod do novo índice
  * @param id        id que apontará o índice
  * @param file_name nome do arquivo principal de índice secundário
  */
-void newSecundaryIdx(database_t *db, secundary_t *secundary, int cod, id_type id, char *file_name);
+void newSecondaryIdx(database_t *db, secondary_t *secondary, int cod, id_type id, char *file_name);
 
 /**
  * carrega para a memória RAM um índice secundário
  * @param db        previamente inicializada
- * @param secundary não necessariamente inicializada, será alterada
+ * @param secondary não necessariamente inicializada, será alterada
  * @param file_name nome do arquivo principal de índice secundário
  */
-void loadSecundaryIdx(database_t *db, secundary_t *secundary, char *file_name);
+void loadSecondaryIdx(database_t *db, secondary_t *secondary, char *file_name);
 
 /**
  * libera um índice secundário
- * @param secundary previamente inicializado
+ * @param secondary previamente inicializado
  */
-void freeSecundaryIdx(secundary_t *secundary);
+void freeSecondaryIdx(secondary_t *secondary);
 
 /**
  * libera e encerra o db
@@ -144,18 +144,18 @@ void freeSecundaryIdx(secundary_t *secundary);
 void closeDB(database_t *db);
 
 /* ====================================================
-   FUNCOES DE ORDENACAO
+   FUNCOES DE ORDENACAO E PESQUISA
    ==================================================== */
-int qsort_secundary(const void *p1, const void *p2);
-
-int qsort_idx(const void *p1, const void *p2);
+int qsort_secondary(const void *p1, const void *p2);
 
 /**
  * Busca binária em índice secundário
  * @param  id        id do índice procurado
  * @return           retorna a posição do primeiro índice na memória
  */
-int bsearchSecundary(secundary_t *secundary, id_type id);
+int bsearchSecondary(secondary_t *secondary, id_type id);
+
+int qsort_idx(const void *p1, const void *p2);
 
 /**
  * funcao que retorna se tem registro ou não dentro do programa
@@ -163,6 +163,12 @@ int bsearchSecundary(secundary_t *secundary, id_type id);
  * @return    verdadeiro se tem registros dentro do arquivo
  */
 bool temRegistro(database_t *db);
+
+void ordenarSecundario(database_t *db, secondary_t *secondary, FILE *fd);
+
+void loadRegFromMemory(database_t *db, id_type id, registro_t *reg);
+
+void removerSecondary(database_t *db, secondary_t *secondary, id_type id, char *file_name);
 
 void ordenarDB(database_t *db);
 

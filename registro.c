@@ -87,15 +87,15 @@ offset_t novoRegistro(database_t *db, registro_t *reg) {
 	fwrite(buffer, sizeof(char), buffer_size, fd);
 	fecharArquivoDB(db);
 	// atualiza o registro secundario idade
-	newSecundaryIdx(db, &db->idx_idade, reg->idade, reg->id, IDADEFILENAME);
+	newSecondaryIdx(db, &db->idx_idade, reg->idade, reg->id, IDADEFILENAME);
 	// atualiza o registro secundario de generos
 	int i = 0;
 	while(reg->generos[i]) {
-		newSecundaryIdx(db, &db->idx_genero, reg->generos[i], reg->id, GENEROSFILENAME);
+		newSecondaryIdx(db, &db->idx_genero, reg->generos[i], reg->id, GENEROSFILENAME);
 		i++;
 	}
 	// atualiza o registro secundario Tu
-	newSecundaryIdx(db, &db->idx_tu, reg->tu, reg->id, TUFILENAME);
+	newSecondaryIdx(db, &db->idx_tu, reg->tu, reg->id, TUFILENAME);
 	// atualiza o indice primario
 	db->num_id++;
 	db->idx_id = realloc(db->idx_id, db->num_id * sizeof(idx_id_t));
@@ -137,16 +137,19 @@ offset_t lerRegistro(database_t *db, registro_t *reg) {
  * pesquisa o registro com base nos índices carregados em memória sequencialmente
  * @param  db previamente inicializada
  * @param  id valor do id procurado
- * @return    retorna a posicao do arquivo do primeiro byte do id
+ * @return    retorna a posição na memória do idx_id
  */
 offset_t pesquisarRegistro(database_t *db, id_type id) {
 	// opcao 3
 	if(db->ordenado == 0) {
 		// pesquisa sequencial
+		#ifdef DEBUG
+			printf("Iniciando a pesquisa sequencial, procurando por ID: '%d'\n", id);
+		#endif // DEBUG
 		int i;
 		for(i=0; i<db->num_id; i++) {
 			if(db->idx_id[i].id == id) {
-				return db->idx_id[i].offset;
+				return i;
 			}
 		}
 		// nao encontrado	
@@ -162,7 +165,7 @@ offset_t pesquisarRegistro(database_t *db, id_type id) {
 			int mid = (beg + end) / 2;
 			if(db->idx_id[mid].id == id) {
 				// encontrou
-				return db->idx_id[mid].offset;
+				return mid;
 			} else if(id < db->idx_id[mid].id) {
 				// está para a esquerda
 				end = mid-1;
@@ -185,69 +188,34 @@ offset_t pesquisarRegistro(database_t *db, id_type id) {
 bool removerRegistro(database_t *db, id_type id) {
 	// opcao 2
 	// ordena antes de remover
-	/* ====================================================
-	   PRECISA DE ALTERAÇÕES!!!
-	   ==================================================== */
-	setFlag(db, 1);
-	int i;
-	offset_t pos = pesquisarRegistro(db, id);
+	int pos = pesquisarRegistro(db, id);
 	if(pos == EOF) {
 		return false;
 	}
+	#ifdef DEBUG
+		section("REMOVENDO REGISTRO");
+		printf("Removendo ID: %d, posição: %d\n", db->idx_id[pos].id, pos);
+	#endif // DEBUG
 	// volta a flag para zero
 	FILE *fd = abrirArquivoDB(db, "r+");
-	fseek(fd, pos, SEEK_SET);
+	fseek(fd, db->idx_id[pos].offset, SEEK_SET);
 	// insere o * indicando q o registro está apagado
 	fputc('*', fd);
-
-	//Remove nos arquivos de índex (memória e arquivo)
-	abrirArquivoIdx(db, "r+b");
-	abrirArquivoGeneros(db, "r+b");
-	abrirArquivoIdade(db, "r+b");
-
-	for(i = 0; i < db->num_id; i++) {
-		if (db->idx_id[i].id == id) {
-			//Apaga na memória
-			db->idx_id[i].id = 0; 
-
-			//Apaga no arquivo de índex primário
-			fseek(db->file_id, (i - 1) * sizeof(idx_id_t), SEEK_SET);
-			fwrite(db->idx_id + i, sizeof(idx_id_t), 1, db->file_id);
-			break;
-		}
-	}
-
-	//Remove o arquivo de índex secundário de gênero (memória e arquivo)
-	for (i = 0; i < db->idx_genero.num_node; i++) {
-		if(db->idx_genero.nodes[i].id == id) {	
-			//Apaga na memória
-			db->idx_genero.nodes[i].id = 0;
-
-			//Apaga no arquivo de gênero
-			fseek(db->file_generos, (i - 1) * sizeof(secundary_node_t), SEEK_SET);
-			fwrite(db->idx_genero.nodes + i, sizeof(secundary_node_t), 1, db->file_generos);
-		}
-	}
-
-	//Remove o arquivo de índex secundário de idade (memória e arquivo)
-	for (i = 0; i < db->idx_idade.num_node; i++) {
-		if(db->idx_idade.nodes[i].id == id) {	
-			//Apaga na memória
-			db->idx_idade.nodes[i].id = 0;
-
-			//Apaga no arquivo de idade
-			fseek(db->file_idade, (i - 1) * sizeof(secundary_node_t), SEEK_SET);
-			fwrite(db->idx_idade.nodes + i, sizeof(secundary_node_t), 1, db->file_idade);
-		}
-	}
-
-
-	fecharArquivoIdx(db);
-	fecharArquivoGeneros(db);
-	fecharArquivoIdade(db);
+	fecharArquivoDB(db);
+	// remove no índice primário
+	db->idx_id[pos].id = 0;
+	// remove no arquivo
+	fd = abrirArquivoIdx(db, "r+");
+	fseek(fd, pos * sizeof(idx_id_t), SEEK_SET);
+	fwrite(db->idx_id+pos, sizeof(idx_id_t), 1, fd);
 	fecharArquivoDB(db);
 
-	// diz que a flag está desordenada
+	// removendo índices secundários
+	removerSecondary(db, &db->idx_idade, id, IDADEFILENAME);
+	removerSecondary(db, &db->idx_genero, id, GENEROSFILENAME);
+	removerSecondary(db, &db->idx_tu, id, TUFILENAME);
+
+	// diz q o registro está desordenado
 	setFlag(db, 0);
 	return true;
 }
@@ -328,6 +296,9 @@ id_type* monta_conjuntoPopIdad(database_t *db, idade_t ini, idade_t fim) {
  */
 genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
 	// opcao 6
+	#ifdef DEBUG
+		section("TESTANDO A OPCAO 6");
+	#endif // DEBUG
 	genero_t *result = calloc(10, sizeof(genero_t));
 	if(ini > fim) {
 		#ifdef DEBUG
@@ -338,17 +309,16 @@ genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
 	// vetor com a quantidade de pessoas que escuta determinado genero
 	int escutam[GENSIZE] = {0};
 	//Monta o conjunto de pessoas na faixa etária dada
-	id_type *conj_pessoas;
-	conj_pessoas = monta_conjuntoPopIdad(db, ini, fim);
-	if(conj_pessoas == NULL) {
-		#ifdef DEBUG
-			printf("Não foram encontradas pessoas nesta faixa de idade\n");
-		#endif //DEBUG
-		return result; //Os requisitos não foram encontrados entre os usuários - vetor de gêneros vazio
-	} else {
-		//Coloca os gêneros que as pessoas do conjunto montado escutam no vetor escutam
-		// fill_escutam(db, conj_pessoas, escutam);
-		free(conj_pessoas);
+	// ordena o arquivo
+	setFlag(db, 1);
+	registro_t reg;
+	forEachId(db, NULL);
+	while(forEachId(db, &reg)) {
+		bool condicaoDeIdade = reg.idade >= ini && reg.idade <= fim;
+		if(!condicaoDeIdade) {
+			continue;
+		}
+		preencheEscutam(&reg, escutam);
 	}
 	// define que os dez maiores sao os dez primeiros
 	int i;
@@ -379,6 +349,14 @@ genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
 		}
 		i++;
 	}
+	#ifdef DEBUG
+		for(i=0; i<10; i++) {
+			if(result[i] == 0) {
+				break;
+			}
+			printf("Resultado da opção 6, id: %d\n", result[i]);
+		}
+	#endif // DEBUG
 	return result;
 }
 
@@ -395,7 +373,9 @@ genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
  */
 id_type *usariosPorGenero(database_t *db, genero_t genero, idade_t ini, idade_t fim) {
 	// opcao 7
-	section("TESTANDO A OPCAO 7");
+	#ifdef DEBUG
+		section("TESTANDO A OPCAO 7");
+	#endif // DEBUG
 	id_type *result = NULL;
 	int result_size = 0;
 
@@ -409,9 +389,9 @@ id_type *usariosPorGenero(database_t *db, genero_t genero, idade_t ini, idade_t 
 
 	setFlag(db, 1);
 	// inicia a varredura
-	forAllIds(db, NULL);
+	forEachId(db, NULL);
 	registro_t reg;
-	while(forAllIds(db, &reg)) {
+	while(forEachId(db, &reg)) {
 		bool condicaoDeIdade = reg.idade >= ini && reg.idade <= fim;
 		if(!condicaoDeIdade || !regCurteGenero(&reg, genero)) {
 			continue;
@@ -445,7 +425,8 @@ void idToRegistro(database_t *db, id_type id, registro_t *reg) {
 
 	//Lê o registro em questão de acordo com o offset do arquivo de índex primário
 	db_file = abrirArquivoDB(db, "r");
-	fseek(db_file, pesquisarRegistro(db, id)-1, SEEK_SET);
+	int pos = db->idx_id[pesquisarRegistro(db, id)].offset-1;
+	fseek(db_file, pos, SEEK_SET);
 	lerRegistro(db, reg);
 	fecharArquivoDB(db);
 }
@@ -502,7 +483,7 @@ bool pessoaCurteGeral(database_t *db, id_type id, genero_t *generos) {
  * @param db  previamente inicializada
  * @param reg NULL para começar uma varredura nova, ponteiro carregado para saida das informações
  */
-bool forAllIds(database_t *db, registro_t *reg) {
+bool forEachId(database_t *db, registro_t *reg) {
 	// se não há registros no arquivo
 	if(!temRegistro(db)) {
 		return false;
@@ -547,7 +528,9 @@ void preencheEscutam(registro_t *reg, int *escutam) {
 genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	// opcao 4
 	// mto parecida com a opcao 5
-	section("TESTANDO A OPCAO 4");
+	#ifdef DEBUG
+		section("TESTANDO A OPCAO 4");
+	#endif // DEBUG
 	genero_t *result = calloc(4, sizeof(genero_t));
 	if(generos[0] == 0) {
 		// vetor de generos esta vazio
@@ -559,8 +542,8 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	// ordena
 	setFlag(db, 1);
 	registro_t reg;
-	forAllIds(db, NULL);
-	while(forAllIds(db, &reg)) {
+	forEachId(db, NULL);
+	while(forEachId(db, &reg)) {
 		if(regCurteGeneros(&reg, generos)) {
 			#ifdef DEBUG
 				printf("Testando Registro: %d\n", reg.id);
@@ -619,7 +602,9 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
  */
 id_type *usuariosMaisJovems(database_t *db, genero_t *generos, tu_t tu) {
 	// opcao 5
-	section("TESTANDO A OPCAO 5");
+	#ifdef DEBUG
+		section("TESTANDO A OPCAO 5");
+	#endif // DEBUG
 	id_type *result = calloc(10, sizeof(id_type));
 	if(!temRegistro(db)) {
 		// o arquivo esta vazio
@@ -631,11 +616,11 @@ id_type *usuariosMaisJovems(database_t *db, genero_t *generos, tu_t tu) {
 	setFlag(db, 1);
 	registro_t reg;
 	// começa uma nova varredura
-	forAllIds(db, NULL);
+	forEachId(db, NULL);
 	// procura as pessoas que curtem os generos
 	// abre o arquivo para procurar o tu
 	while(i < 10) {
-		if(!forAllIds(db, &reg)) {
+		if(!forEachId(db, &reg)) {
 			// acabaram as pessoas para serem comparadas
 			return result;
 		}
@@ -656,7 +641,7 @@ id_type *usuariosMaisJovems(database_t *db, genero_t *generos, tu_t tu) {
 		}
 	}
 	// varre os demais registros
-	while(forAllIds(db, &reg)) {
+	while(forEachId(db, &reg)) {
 		// se a pessoa não curte os generos e não tem o msmo Tu
 		if(!regCurteGeneros(&reg, generos) || reg.tu != tu) {
 			continue;

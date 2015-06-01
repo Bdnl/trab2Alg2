@@ -145,7 +145,7 @@ bool pessoaCurteGeral(database_t *db, id_type id, genero_t *generos);
  * @param db  previamente inicializada
  * @param reg NULL para começar uma varredura nova, ponteiro carregado para saida das informações
  */
-bool forAllIds(database_t *db, registro_t *reg);
+bool forEachId(database_t *db, registro_t *reg);
 
 /**
  * adiciona ao vetor escutam os generos que o registro curte

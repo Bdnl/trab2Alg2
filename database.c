@@ -43,10 +43,18 @@ void initDB(database_t *db) {
 	db->idx_id = malloc(db->num_id * sizeof(idx_id_t));
 	fread(db->idx_id, sizeof(idx_id_t), db->num_id, fd);
 	fclose(fd);
+	// remove os ids = 0
+	while(db->num_id > 0) {
+		if(db->idx_id[db->num_id-1].id != 0) {
+			// ja removeu todo mundo
+			break;
+		}
+		db->num_id--;
+	}
 	// carrega os indices secundarios
-	loadSecundaryIdx(db, &db->idx_idade, IDADEFILENAME);
-	loadSecundaryIdx(db, &db->idx_genero, GENEROSFILENAME);
-	loadSecundaryIdx(db, &db->idx_tu, TUFILENAME);
+	loadSecondaryIdx(db, &db->idx_idade, IDADEFILENAME);
+	loadSecondaryIdx(db, &db->idx_genero, GENEROSFILENAME);
+	loadSecondaryIdx(db, &db->idx_tu, TUFILENAME);
 	// carrega a table de generos
 	fd = fopen(GENEROSTABLEFILENAME, "r");
 	db->genero_table.num_node = _file_size(fd) / sizeof(genero_node_t);
@@ -143,62 +151,70 @@ void fecharArquivoGeneros(database_t *db) {
  * inicializa um nó de índices secundarios
  * @param node necessariamente não inicializada
  */
-void initSecundaryNode(secundary_node_t *node) {
-	memset(node, 0, sizeof(secundary_node_t));
+void initSecondaryNode(secondary_node_t *node) {
+	memset(node, 0, sizeof(secondary_node_t));
 }
 
 /**
  * cria um novo índice secundário
  * @param db        previamente inicializada
- * @param secundary previamente inicializada
+ * @param secondary previamente inicializada
  * @param cod       cod do novo índice
  * @param id        id que apontará o índice
  * @param file_name nome do arquivo principal de índice secundário
  */
-void newSecundaryIdx(database_t *db, secundary_t *secundary, int cod, id_type id, char *file_name) {
+void newSecondaryIdx(database_t *db, secondary_t *secondary, int cod, id_type id, char *file_name) {
 	#ifdef DEBUG
 		printf("Inserindo no secundario: %d => %d\n", cod, id);
 	#endif // DEBUG
 	// obtem a nova posicao do nó
-	int pos_node = secundary->num_node;
+	int pos_node = secondary->num_node;
 	// cria um novo nó
-	secundary->num_node++;
-	secundary->nodes = realloc(secundary->nodes, secundary->num_node * sizeof(secundary_node_t));
-	initSecundaryNode(secundary->nodes + pos_node);
+	secondary->num_node++;
+	secondary->nodes = realloc(secondary->nodes, secondary->num_node * sizeof(secondary_node_t));
+	initSecondaryNode(secondary->nodes + pos_node);
 	// seta as nocas condições
-	secundary->nodes[pos_node].cod = cod;
-	secundary->nodes[pos_node].id = id;
+	secondary->nodes[pos_node].cod = cod;
+	secondary->nodes[pos_node].id = id;
 	// atualiza todo o arquivo de idx
 	FILE *fd = fopen(file_name, "a");
-	fwrite(secundary->nodes+pos_node, sizeof(secundary_node_t), 1, fd);
+	fwrite(secondary->nodes+pos_node, sizeof(secondary_node_t), 1, fd);
 	fclose(fd);
 }
 
 /**
  * carrega para a memória RAM um índice secundário
  * @param db        previamente inicializada
- * @param secundary não necessariamente inicializada, será alterada
+ * @param secondary não necessariamente inicializada, será alterada
  * @param file_name nome do arquivo principal de índice secundário
  */
-void loadSecundaryIdx(database_t *db, secundary_t *secundary, char *file_name) {
+void loadSecondaryIdx(database_t *db, secondary_t *secondary, char *file_name) {
 	// carregando o arquivo principal
 	FILE *fd_principal = fopen(file_name, "r");
 
-	secundary->num_node = _file_size(fd_principal) / sizeof(secundary_node_t);
+	secondary->num_node = _file_size(fd_principal) / sizeof(secondary_node_t);
 	// aloca
-	secundary->nodes = malloc(secundary->num_node * sizeof(secundary_node_t));
+	secondary->nodes = malloc(secondary->num_node * sizeof(secondary_node_t));
 	// carrega o principal
-	fread(secundary->nodes, sizeof(secundary_node_t), secundary->num_node, fd_principal);
+	fread(secondary->nodes, sizeof(secondary_node_t), secondary->num_node, fd_principal);
 
 	fclose(fd_principal);
+	// remove os ids = 0
+	while(secondary->num_node > 0) {
+		if(secondary->nodes[secondary->num_node-1].id != 0) {
+			// ja removeu todo mundo
+			break;
+		}
+		secondary->num_node--;
+	}
 }
 
 /**
  * libera um índice secundário
- * @param secundary previamente inicializado
+ * @param secondary previamente inicializado
  */
-void freeSecundaryIdx(secundary_t *secundary) {
-	free(secundary->nodes);
+void freeSecondaryIdx(secondary_t *secondary) {
+	free(secondary->nodes);
 }
 
 /**
@@ -213,17 +229,17 @@ void closeDB(database_t *db) {
 	fecharArquivoGeneros(db);
 
 	// libera na memória
-	freeSecundaryIdx(&db->idx_idade);
-	freeSecundaryIdx(&db->idx_genero);
+	freeSecondaryIdx(&db->idx_idade);
+	freeSecondaryIdx(&db->idx_genero);
 	free(db->idx_id);
 }
 
 /* ====================================================
    FUNCOES DE ORDENACAO E PESQUISA
    ==================================================== */
-int qsort_secundary(const void *p1, const void *p2) {
-	secundary_node_t *lt = (secundary_node_t *) p1;
-	secundary_node_t *gt = (secundary_node_t *) p2;
+int qsort_secondary(const void *p1, const void *p2) {
+	secondary_node_t *lt = (secondary_node_t *) p1;
+	secondary_node_t *gt = (secondary_node_t *) p2;
 	// joga os zeros para a direita
 	if(lt->id == 0) {
 		return 1;
@@ -244,21 +260,18 @@ int qsort_secundary(const void *p1, const void *p2) {
  * @param  id        id do índice procurado
  * @return           retorna a posição do primeiro índice na memória
  */
-int bsearchSecundary(secundary_t *secundary, id_type id) {
+int bsearchSecondary(secondary_t *secondary, id_type id) {
 	// pesquisa binária
-	#ifdef DEBUG
-		printf("Iniciando a pesquisa binária no índice secundário, procurando por ID: '%d'\n", id);
-	#endif // DEBUG
 	// GARANTA QUE DB ESTÁ ORDENADO
 	int beg = 0;
-	int end = secundary->num_node-1;
+	int end = secondary->num_node-1;
 	while(beg <= end) {
 		int mid = (beg + end) / 2;
-		if(secundary->nodes[mid].id == id) {
+		if(secondary->nodes[mid].id == id) {
 			// encontrou
 			// anda com o mid para trás para char o primeiro elemento
 			while(mid > 0) {
-				if(secundary->nodes[mid-1].id == id) {
+				if(secondary->nodes[mid-1].id == id) {
 					mid--;
 				} else {
 					// se o ID de trás for de outra pessoa, sai do laço
@@ -266,10 +279,10 @@ int bsearchSecundary(secundary_t *secundary, id_type id) {
 				}
 			}
 			return mid;
-		} else if(id < secundary->nodes[mid].id) {
+		} else if(id < secondary->nodes[mid].id) {
 			// está para a esquerda
 			end = mid-1;
-		} else if(id > secundary->nodes[mid].id) {
+		} else if(id > secondary->nodes[mid].id) {
 			// está para a direita
 			beg = mid+1;
 		}
@@ -305,18 +318,27 @@ bool temRegistro(database_t *db) {
 	return db->num_id > 0;
 }
 
-void ordenarSecundario(database_t *db, secundary_t *secundary, FILE *fd) {
-	qsort(secundary->nodes, secundary->num_node, sizeof(secundary_node_t), qsort_secundary);
-	fwrite(secundary->nodes, sizeof(secundary_node_t), secundary->num_node, fd);
+void ordenarSecundario(database_t *db, secondary_t *secondary, FILE *fd) {
+	qsort(secondary->nodes, secondary->num_node, sizeof(secondary_node_t), qsort_secondary);
+	// remove os ids = 0
+	while(secondary->num_node > 0) {
+		if(secondary->nodes[secondary->num_node-1].id != 0) {
+			// ja removeu todos os zeros
+			break;
+		}
+		secondary->num_node--;
+	}
+	fwrite(secondary->nodes, sizeof(secondary_node_t), secondary->num_node, fd);
 }
 
 void loadRegFromMemory(database_t *db, id_type id, registro_t *reg) {
+	setFlag(db, 1);
 	reg->id = id;
 	// carrega a idade
-	int sec_pos = bsearchSecundary(&db->idx_idade, id);
+	int sec_pos = bsearchSecondary(&db->idx_idade, id);
 	reg->idade = db->idx_idade.nodes[sec_pos].cod;
 	// carrega os generos
-	sec_pos = bsearchSecundary(&db->idx_genero, id);
+	sec_pos = bsearchSecondary(&db->idx_genero, id);
 	if(sec_pos == -1) {
 		// vetor generos está vazio
 		reg->generos[0] = 0;
@@ -333,8 +355,42 @@ void loadRegFromMemory(database_t *db, id_type id, registro_t *reg) {
 		reg->generos[i] = 0;
 	}
 	// carrega tu
-	sec_pos = bsearchSecundary(&db->idx_tu, id);
+	sec_pos = bsearchSecondary(&db->idx_tu, id);
 	reg->tu = db->idx_tu.nodes[sec_pos].cod;
+}
+
+void removerSecondary(database_t *db, secondary_t *secondary, id_type id, char *file_name) {
+	FILE *fd = fopen(file_name, "r+");
+	if(db->ordenado) {
+		// faz busca binária
+		int pos = bsearchSecondary(secondary, id);
+		while(pos < secondary->num_node) {
+			if(secondary->nodes[pos].id != id) {
+				// acaba a varredura
+				break;
+			}
+			// posiciona no arquivo para remoção
+			offset_t offset = pos * sizeof(secondary_node_t);
+			fseek(fd, offset, SEEK_SET);
+			secondary->nodes[pos].id = 0;
+			fwrite(secondary->nodes, sizeof(secondary_node_t), 1, fd);
+		}
+	} else {
+		// faz busca sequencial
+		int i;
+		for(i=0; i<secondary->num_node; i++) {
+			if(secondary->nodes[i].id != id) {
+				continue;
+			}
+			// trabalha com este id
+			// posiciona no arquivo para remoção
+			offset_t offset = i * sizeof(secondary_node_t);
+			fseek(fd, offset, SEEK_SET);
+			secondary->nodes[i].id = 0;
+			fwrite(secondary->nodes, sizeof(secondary_node_t), 1, fd);
+		}
+	}
+	fclose(fd);
 }
 
 void ordenarDB(database_t *db) {
@@ -348,12 +404,28 @@ void ordenarDB(database_t *db) {
 	}
 	// ordena idx_id_t
 	qsort(db->idx_id, db->num_id, sizeof(idx_id_t), qsort_idx);
+	// remove os zeros no final
+	while(db->num_id > 0) {
+		if(db->idx_id[db->num_id-1].id != 0) {
+			// ja removeu todos os zeros
+			break;
+		}
+		db->num_id--;
+	}
 
 	// atualiza os arquivos
 	FILE *fd = abrirArquivoIdx(db, "w");
 	fputc(1, fd); // flag de ordenado
 	fwrite(db->idx_id, sizeof(idx_id_t), db->num_id, fd);
 	fecharArquivoIdx(db);
+	#ifdef DEBUG
+		section("IMPRIMINDO INDICES");
+		printf("Indice primário\n");
+		int i;
+		for(i=0; i<db->num_id; i++) {
+			printf("%2d => %2ld\n", db->idx_id[i].id, db->idx_id[i].offset);
+		}
+	#endif // DEBUG
 	fd = abrirArquivoIdade(db, "w");
 	ordenarSecundario(db, &db->idx_idade, fd);
 	fecharArquivoIdade(db);
