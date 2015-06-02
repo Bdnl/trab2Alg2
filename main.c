@@ -17,7 +17,7 @@
 
 // defina interface de usuário para ter uma interface amigável
 
-#define MENU_IU
+// #define MENU_IU
 #ifndef MENU_IU
 	#define system_pause() ;
 #endif // MENU_IU
