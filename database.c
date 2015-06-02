@@ -245,6 +245,8 @@ void closeDB(database_t *db) {
 	freeSecondaryIdx(&db->idx_genero);
 	freeSecondaryIdx(&db->idx_tu);
 	free(db->idx_id);
+	// libera a tabela de generos
+	free(db->genero_table.nodes);
 }
 
 /* ====================================================
