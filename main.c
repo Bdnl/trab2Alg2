@@ -16,8 +16,8 @@
 #include "database.h"
 
 // defina interface de usuário para ter uma interface amigável
-// #define MENU_IU
 
+#define MENU_IU
 #ifndef MENU_IU
 	#define system_pause() ;
 #endif // MENU_IU
@@ -130,7 +130,9 @@ void menu_1(database_t *db){
 	}
 	
 	//Nome
-	printf("Nome:");
+	#ifdef MENU_IU
+		printf("Nome:");
+	#endif // MENU_IU
 	_scanf_s(new_reg.nome, NOMESIZE);
 	//Idade
 	#ifdef MENU_IU
@@ -324,27 +326,28 @@ void menu_4(database_t *db){
 	strcpy(generos_result, generos_cod_result);
 	free(generos_cod_result);	//Malloc foi feito na função generosPopularesGenero
 	
-	//Transforma o vetor de códigos na string dos gêneros e imprime
-	generosCodToStr(db, generos_result);
-	
-	//Imprime uma gênero por linha
-	#ifdef MENU_IU
-		printf("\nResultado:\n");
-	#endif // MENU_IU
-	int i=0;
-	while(generos_result[i]){
-		if(generos_result[i] != '@') {
-			putchar(generos_result[i]);
+	// se há generos para imprimir
+	if(generos_result[0] != 0) {
+		//Transforma o vetor de códigos na string dos gêneros e imprime
+		generosCodToStr(db, generos_result);
+		
+		//Imprime uma gênero por linha
+		#ifdef MENU_IU
+			printf("\nResultado:\n");
+		#endif // MENU_IU
+		int i=0;
+		while(generos_result[i]){
+			if(generos_result[i] != '@') {
+				putchar(generos_result[i]);
+			}
+			else {
+				putchar('\n');
+			}
+			i++;
 		}
-		else {
-			putchar('\n');
-		}
-		i++;
+		putchar('\n');
 	}
-	putchar('\n');
-
 	system_pause();
-	return;
 }
 
 /**
@@ -448,28 +451,28 @@ void menu_6(database_t *db){
 	generos_result[10] = 0; // garante q o ultimo elemnto vai ser zero
 	free(generos_cod_result);	//Malloc foi feito na função generosPopularesIdade
 	
-	//Transforma o vetor de códigos na string dos gêneros e imprime
-	generosCodToStr(db, generos_result);
-	
-	//Imprime uma gênero por linha
-	#ifdef MENU_IU
-		printf("\nResultado:\n");
-	#endif // MENU_IU
-	int i=0;
-	while(generos_result[i]){
-		if(generos_result[i] != '@') {
-			putchar(generos_result[i]);
+	// se há generos para imprimir
+	if(generos_result[0] != 0) {
+		//Transforma o vetor de códigos na string dos gêneros e imprime
+		generosCodToStr(db, generos_result);
+		
+		//Imprime uma gênero por linha
+		#ifdef MENU_IU
+			printf("\nResultado:\n");
+		#endif // MENU_IU
+		int i=0;
+		while(generos_result[i]){
+			if(generos_result[i] != '@') {
+				putchar(generos_result[i]);
+			}
+			else {
+				putchar('\n');
+			}
+			i++;
 		}
-		else {
-			putchar('\n');
-		}
-		i++;
+		putchar('\n');
 	}
-	putchar('\n');
-
 	system_pause();
-
-	return;
 }
 
 /**

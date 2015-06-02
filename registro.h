@@ -31,7 +31,7 @@ offset_t novoRegistro(database_t *db, registro_t *reg);
  * o cursor do arquivo deve estar apontado para a posição anterior do primeiro byte do registro
  * @param  db  previamente inicializada
  * @param  reg nao necessariamente inicializado, será alterada
- * @return     a pos~ição do primeiro byte do registro ou EOF caso erro
+ * @return     a posição do primeiro byte do registro ou EOF caso erro
  */
 offset_t lerRegistro(database_t *db, registro_t *reg);
 
@@ -39,7 +39,7 @@ offset_t lerRegistro(database_t *db, registro_t *reg);
  * pesquisa o registro com base nos índices carregados em memória sequencialmente
  * @param  db previamente inicializada
  * @param  id valor do id procurado
- * @return    retorna a posicao do arquivo do primeiro byte do id
+ * @return    retorna a posição na memória do idx_id
  */
 offset_t pesquisarRegistro(database_t *db, id_type id);
 

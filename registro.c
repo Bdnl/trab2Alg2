@@ -312,7 +312,7 @@ genero_t *generosPopularesIdade(database_t *db, idade_t ini, idade_t fim) {
 	int j = 0;
 	while(j < 10 && i < GENSIZE) {
 		if(escutam[i] != 0) {
-			result[j] = i+1;
+			result[j] = i;
 			j++;
 		}
 		i++;
@@ -532,7 +532,8 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 		section("TESTANDO A OPCAO 4");
 	#endif // DEBUG
 	genero_t *result = calloc(4, sizeof(genero_t));
-	if(generos[0] == 0) {
+	// se generos está vazio ou se tem mtos generos
+	if(generos[0] == 0 || strlen(generos) > 3) {
 		// vetor de generos esta vazio
 		return result;
 	}
@@ -558,8 +559,12 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
 	int j = 0;
 	while(j < 3 && i < GENSIZE) {
 		if(escutam[i] != 0) {
-			result[j] = i+1;
-			j++;
+			bool pertenceAgeneros = strchr(generos, i);
+			if(!pertenceAgeneros) {
+				// se este genero não está no parâmetro
+				result[j] = i;
+				j++;
+			}
 		}
 		i++;
 	}
@@ -615,6 +620,10 @@ id_type *usuariosMaisJovems(database_t *db, genero_t *generos, tu_t tu) {
 		section("TESTANDO A OPCAO 5");
 	#endif // DEBUG
 	id_type *result = calloc(10, sizeof(id_type));
+	// se generos está vazio ou se há mtos generos
+	if(generos[0] == 0 || strlen(generos) > 3) {
+		return result;
+	}
 	if(!temRegistro(db)) {
 		// o arquivo esta vazio
 		return result;

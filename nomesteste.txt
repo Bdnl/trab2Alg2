@@ -3,7 +3,7 @@
 Lucas
 18
 M
-Rock@Funk@Opera@Infantil
+unknown
 1
 
 1
@@ -11,7 +11,7 @@ Rock@Funk@Opera@Infantil
 Elaine
 30
 F
-Punk@Eletronica@Rock
+unknown
 1
 
 1
@@ -27,7 +27,7 @@ unknown
 Augusto
 34
 M
-Opera@Rock@Sertanejo
+unknown
 1
 
 1
@@ -35,7 +35,7 @@ Opera@Rock@Sertanejo
 Marcela
 11
 F
-Infantil@Funk@Rock
+unknown
 1
 
 1
@@ -43,7 +43,7 @@ Infantil@Funk@Rock
 Marilene
 44
 F
-Samba@Bossa Nova@Sertanejo@Rock
+unknown
 1
 
 1
@@ -51,7 +51,7 @@ Samba@Bossa Nova@Sertanejo@Rock
 Maria
 33
 F
-Rock@Opera@Infantil@Punk
+unknown
 1
 
 1
@@ -59,7 +59,7 @@ Rock@Opera@Infantil@Punk
 Carlos
 40
 M
-Sertanejo@Rock@Opera@Infantil
+unknown
 1
 
 1
@@ -67,7 +67,7 @@ Sertanejo@Rock@Opera@Infantil
 Nancy
 42
 F
-Funk@Rock@Opera@Bossa Nova
+unknown
 1
 
 1
@@ -75,7 +75,7 @@ Funk@Rock@Opera@Bossa Nova
 Anjo
 22
 M
-Funk@Rock@Bossa Nova@Opera
+unknown
 1
 
 1
@@ -83,7 +83,7 @@ Funk@Rock@Bossa Nova@Opera
 Kids
 9
 M
-Infantil@Rock
+unknown
 1
 
 1
@@ -91,7 +91,7 @@ Infantil@Rock
 Bárbara
 11
 F
-Rock@Infantil
+unknown
 1
 
 8
