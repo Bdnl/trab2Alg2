@@ -16,10 +16,9 @@
 #include "database.h"
 
 #ifdef TEST
-//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-/*
-O teste n tem nenhum comentário, mas n sei se a gnt vai enviar ele. Vai?
-*/
+/**
+ * arquivo de teste para as funções do programa
+ */
 int main(int argc, char *argv[]) {
 	database_t db;
 	initDB(&db);

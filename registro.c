@@ -238,40 +238,6 @@ bool regCurteGeneros(registro_t *reg, genero_t *generos) {
 	return true;
 }
 
-/*
-Função que monta o conjunto com as pessoas que estão numa determinada faixa etária
-Variáveis:
-	db- banco de dados em memória
-	ini- idade inicial
-	fim- idade final
-	conj_pessoas- conjunto de pessoas a ser montado
-	i- contador
-	parametro- usado para ver se foi encontrada pelo menos uma pessoa que atende aos requisitos
-
-Retorno:
-	Ponteiro para um conjunto de pessoas (seus idx) - Se encontrada pelo menos uma pessoa que atende aos requisitos
-	NULL- Não foi encontrado ninguém 
-*/
-id_type* monta_conjuntoPopIdad(database_t *db, idade_t ini, idade_t fim) {
-	id_type *conj_pessoas;
-	int i, parametro;
-
-	parametro = 0;
-	conj_pessoas = calloc(db->num_id, sizeof(id_type)); //Inicializa todos com 0
-	for(i = 0; i < db->idx_idade.num_node; i++) {
-		if(db->idx_idade.nodes[i].cod >= ini && db->idx_idade.nodes[i].cod <= fim) {
-			conj_pessoas[i] = db->idx_idade.nodes[i].id;
-			parametro++;
-		}
-	}
-	if(parametro == 0) { //Verifica se realmente foram encontradas pessoas na faixa etária
-		free(conj_pessoas);
-		return NULL;
-	} else {
-		return conj_pessoas;
-	}
-}
-
 /**
  * precisa de free
  * pesquisa os generos mais populares por idade
@@ -484,8 +450,9 @@ bool pessoaCurteGeral(database_t *db, id_type id, genero_t *generos) {
  * Varre todos os IDs, obtendo todas as informações disponíveis da memória RAM
  * @param db  previamente inicializada
  * @param reg NULL para começar uma varredura nova, ponteiro carregado para saida das informações
+ * @return    true se um novo registro foi carregado, false se não há mais registros para ler
  */
-bool forEachId(database_t *db, registro_t *reg) { //Só n comenta o retorno!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+bool forEachId(database_t *db, registro_t *reg) {
 	// se não há registros no arquivo
 	if(!temRegistro(db)) {
 		return false;
@@ -616,7 +583,7 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
  * generos deve ser algo como [1, 2, 3, 4, 0], o ultimo valor é sempre 0
  * ler até o 0 ou 10 elementos
  */
-id_type *usuariosMaisJovems(database_t *db, genero_t *generos, tu_t tu) { //Só n comenta o retorno!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+id_type *usuariosMaisJovems(database_t *db, genero_t *generos, tu_t tu) {
 	// opcao 5
 	#ifdef DEBUG
 		section("TESTANDO A OPCAO 5");

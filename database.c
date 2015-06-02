@@ -250,9 +250,27 @@ void closeDB(database_t *db) {
 /* ====================================================
    FUNCOES DE ORDENACAO E PESQUISA
    ==================================================== */
-int qsort_secondary(const void *p1, const void *p2) { //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+int qsort_secondary(const void *p1, const void *p2) {
 	secondary_node_t *lt = (secondary_node_t *) p1;
 	secondary_node_t *gt = (secondary_node_t *) p2;
+	// joga os zeros para a direita
+	if(lt->id == 0) {
+		return 1;
+	} else if(gt->id == 0) {
+		return -1;
+	}
+	// ordenação ascendente
+	if(lt->id < gt->id) {
+		return -1;
+	} else if(lt->id > gt->id) {
+		return 1;
+	}
+	return 0;
+}
+
+int qsort_idx(const void *p1, const void *p2) {
+	idx_id_t *lt = (idx_id_t *) p1;
+	idx_id_t *gt = (idx_id_t *) p2;
 	// joga os zeros para a direita
 	if(lt->id == 0) {
 		return 1;
@@ -304,24 +322,6 @@ int bsearchSecondary(secondary_t *secondary, id_type id) {
 	return -1;
 }
 
-int qsort_idx(const void *p1, const void *p2) { //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-	idx_id_t *lt = (idx_id_t *) p1;
-	idx_id_t *gt = (idx_id_t *) p2;
-	// joga os zeros para a direita
-	if(lt->id == 0) {
-		return 1;
-	} else if(gt->id == 0) {
-		return -1;
-	}
-	// ordenação ascendente
-	if(lt->id < gt->id) {
-		return -1;
-	} else if(lt->id > gt->id) {
-		return 1;
-	}
-	return 0;
-}
-
 /**
  * funcao que retorna se tem registro ou não dentro do programa
  * @param  db previamente inicializado
@@ -331,7 +331,13 @@ bool temRegistro(database_t *db) {
 	return db->num_id > 0;
 }
 
-void ordenarSecundario(database_t *db, secondary_t *secondary, FILE *fd) { //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/**
+ * ordena um índice secundário
+ * @param db        previamente inicializado
+ * @param secondary índice secundário para ordenação
+ * @param fd        arquivo do índice secundário correspondente
+ */
+void ordenarSecundario(database_t *db, secondary_t *secondary, FILE *fd) {
 	qsort(secondary->nodes, secondary->num_node, sizeof(secondary_node_t), qsort_secondary);
 	// remove os ids = 0
 	while(secondary->num_node > 0) {
@@ -344,7 +350,13 @@ void ordenarSecundario(database_t *db, secondary_t *secondary, FILE *fd) { //Ess
 	fwrite(secondary->nodes, sizeof(secondary_node_t), secondary->num_node, fd);
 }
 
-void loadRegFromMemory(database_t *db, id_type id, registro_t *reg) { //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/**
+ * carrega um registro apenas com informações presentes nos índices
+ * @param db  previamente inicializado
+ * @param id  id da pessoa para carregar
+ * @param reg será modificada
+ */
+void loadRegFromMemory(database_t *db, id_type id, registro_t *reg) {
 	setOrdenado(db, 1);
 	reg->id = id;
 	// carrega a idade
@@ -372,7 +384,14 @@ void loadRegFromMemory(database_t *db, id_type id, registro_t *reg) { //Essa est
 	reg->tu = db->idx_tu.nodes[sec_pos].cod;
 }
 
-void removerSecondary(database_t *db, secondary_t *secondary, id_type id, char *file_name) { //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/**
+ * remove um nó de um índice secundário
+ * @param db        previamente inicializada
+ * @param secondary índice secundário
+ * @param id        id do nó
+ * @param file_name arquivo em q se encontra o índice
+ */
+void removerSecondary(database_t *db, secondary_t *secondary, id_type id, char *file_name) {
 	FILE *fd = fopen(file_name, "r+");
 	if(db->ordenado) {
 		// faz busca binária
@@ -406,7 +425,11 @@ void removerSecondary(database_t *db, secondary_t *secondary, id_type id, char *
 	fclose(fd);
 }
 
-void ordenarDB(database_t *db) { //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/**
+ * função que ordena os índices
+ * @param db previamente inicializado
+ */
+void ordenarDB(database_t *db) {
 	if(db->ordenado) {
 		// já está ordenado
 		return ;
@@ -475,7 +498,13 @@ void setOrdenado(database_t *db, char flag) {
 	#endif // DEBUG
 }
 
-void novoIndice(database_t *db, registro_t *reg, offset_t offset) { //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/**
+ * cria um novo índice para um novo registro
+ * @param db     previamente inicializado
+ * @param reg    registro para criar o índice
+ * @param offset offset do registro no arquivo principal
+ */
+void novoIndice(database_t *db, registro_t *reg, offset_t offset) {
 	// atualiza o registro secundario idade
 	newSecondaryIdx(db, &db->idx_idade, reg->idade, reg->id, IDADEFILENAME);
 	// atualiza o registro secundario de generos
@@ -493,7 +522,7 @@ void novoIndice(database_t *db, registro_t *reg, offset_t offset) { //Essa está
 	idx_id->id = reg->id;
 	idx_id->offset = offset;
 	#ifdef DEBUG
-		printf("Novo índice para o ID: %d => %d\n", idx_id->id, idx_id->offset);
+		printf("Novo índice para o ID: %d => %ld\n", idx_id->id, idx_id->offset);
 	#endif // DEBUG
 	// abre o arquivo de idx principal
 	// insere no final
@@ -502,7 +531,11 @@ void novoIndice(database_t *db, registro_t *reg, offset_t offset) { //Essa está
 	fecharArquivoIdx(db);
 }
 
-void criarIndiceComFileDB(database_t *db) { //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/**
+ * cria os índices a partir do arquivo principal
+ * @param db previamente inicializado
+ */
+void criarIndiceComFileDB(database_t *db) {
 	#ifdef DEBUG
 		printf("Recriando o índice\n");
 	#endif // DEBUG
