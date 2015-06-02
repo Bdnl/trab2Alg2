@@ -1,3 +1,9 @@
+/**
+ * Leonardo Guarnieri de Bastiani  8910434
+ * Guilherme José Acra             7150306
+ * Ricardo Chagas                  8957242
+ */
+
 #ifndef __DATABASE_H__
 #define __DATABASE_H__
 
