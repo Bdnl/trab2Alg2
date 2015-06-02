@@ -152,7 +152,7 @@ void closeDB(database_t *db);
 /* ====================================================
    FUNCOES DE ORDENACAO E PESQUISA
    ==================================================== */
-int qsort_secondary(const void *p1, const void *p2);
+int qsort_secondary(const void *p1, const void *p2); //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 /**
  * Busca binária em índice secundário
@@ -161,22 +161,22 @@ int qsort_secondary(const void *p1, const void *p2);
  */
 int bsearchSecondary(secondary_t *secondary, id_type id);
 
-int qsort_idx(const void *p1, const void *p2);
+int qsort_idx(const void *p1, const void *p2); //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 /**
  * funcao que retorna se tem registro ou não dentro do programa
  * @param  db previamente inicializado
  * @return    verdadeiro se tem registros dentro do arquivo
  */
-bool temRegistro(database_t *db);
+bool temRegistro(database_t *db); 
 
-void ordenarSecundario(database_t *db, secondary_t *secondary, FILE *fd);
+void ordenarSecundario(database_t *db, secondary_t *secondary, FILE *fd);//Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-void loadRegFromMemory(database_t *db, id_type id, registro_t *reg);
+void loadRegFromMemory(database_t *db, id_type id, registro_t *reg);//Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-void removerSecondary(database_t *db, secondary_t *secondary, id_type id, char *file_name);
+void removerSecondary(database_t *db, secondary_t *secondary, id_type id, char *file_name);//Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-void ordenarDB(database_t *db);
+void ordenarDB(database_t *db);//Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 /**
  * set na flag do arquivo idx, essa flag diz se os indices estao atualizados ou não
@@ -185,7 +185,11 @@ void ordenarDB(database_t *db);
  */
 void setOrdenado(database_t *db, char flag);
 
-void novoIndice(database_t *db, registro_t *reg, offset_t offset);
+void novoIndice(database_t *db, registro_t *reg, offset_t offset);//Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-void criarIndiceComFileDB(database_t *db);
+void criarIndiceComFileDB(database_t *db);//Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #endif
+//Só o comentário em baixo !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+/*
+Algumas estão com comentário e outras sem, n seria melhor deixar tds iguais?
+*/

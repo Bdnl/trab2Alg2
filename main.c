@@ -45,7 +45,7 @@ void titulo(char * subtitulo){
  * Testa se a string contem apenas números (positivos)
  * @param eh_número:	ponteiro para a string a ser testada
 */
-int teste_numero(char *eh_numero){
+int teste_numero(char *eh_numero){ //Só n comenta o retorno!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	int i = 0;
 	while(eh_numero[i] != '\0'){
 		if(eh_numero[i] < '0' || eh_numero[i] > '9') {

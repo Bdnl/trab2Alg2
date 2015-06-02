@@ -415,6 +415,8 @@ Váriaveis:
 	db_file- arquivo correspondente ao banco de dados
 	buffer- buffer do registro da pessoa em questão
 	reg_size- tamanho do registro
+Retorno:
+	Retorna o offset do registro correspondente a ID
 */
 offset_t idToRegistro(database_t *db, id_type id, registro_t *reg) {
 	FILE *db_file;
@@ -483,7 +485,7 @@ bool pessoaCurteGeral(database_t *db, id_type id, genero_t *generos) {
  * @param db  previamente inicializada
  * @param reg NULL para começar uma varredura nova, ponteiro carregado para saida das informações
  */
-bool forEachId(database_t *db, registro_t *reg) {
+bool forEachId(database_t *db, registro_t *reg) { //Só n comenta o retorno!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// se não há registros no arquivo
 	if(!temRegistro(db)) {
 		return false;
@@ -614,7 +616,7 @@ genero_t *generosPopularesGenero(database_t *db, genero_t *generos) {
  * generos deve ser algo como [1, 2, 3, 4, 0], o ultimo valor é sempre 0
  * ler até o 0 ou 10 elementos
  */
-id_type *usuariosMaisJovems(database_t *db, genero_t *generos, tu_t tu) {
+id_type *usuariosMaisJovems(database_t *db, genero_t *generos, tu_t tu) { //Só n comenta o retorno!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// opcao 5
 	#ifdef DEBUG
 		section("TESTANDO A OPCAO 5");

@@ -250,7 +250,7 @@ void closeDB(database_t *db) {
 /* ====================================================
    FUNCOES DE ORDENACAO E PESQUISA
    ==================================================== */
-int qsort_secondary(const void *p1, const void *p2) {
+int qsort_secondary(const void *p1, const void *p2) { //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	secondary_node_t *lt = (secondary_node_t *) p1;
 	secondary_node_t *gt = (secondary_node_t *) p2;
 	// joga os zeros para a direita
@@ -304,7 +304,7 @@ int bsearchSecondary(secondary_t *secondary, id_type id) {
 	return -1;
 }
 
-int qsort_idx(const void *p1, const void *p2) {
+int qsort_idx(const void *p1, const void *p2) { //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	idx_id_t *lt = (idx_id_t *) p1;
 	idx_id_t *gt = (idx_id_t *) p2;
 	// joga os zeros para a direita
@@ -331,7 +331,7 @@ bool temRegistro(database_t *db) {
 	return db->num_id > 0;
 }
 
-void ordenarSecundario(database_t *db, secondary_t *secondary, FILE *fd) {
+void ordenarSecundario(database_t *db, secondary_t *secondary, FILE *fd) { //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	qsort(secondary->nodes, secondary->num_node, sizeof(secondary_node_t), qsort_secondary);
 	// remove os ids = 0
 	while(secondary->num_node > 0) {
@@ -344,7 +344,7 @@ void ordenarSecundario(database_t *db, secondary_t *secondary, FILE *fd) {
 	fwrite(secondary->nodes, sizeof(secondary_node_t), secondary->num_node, fd);
 }
 
-void loadRegFromMemory(database_t *db, id_type id, registro_t *reg) {
+void loadRegFromMemory(database_t *db, id_type id, registro_t *reg) { //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	setOrdenado(db, 1);
 	reg->id = id;
 	// carrega a idade
@@ -372,7 +372,7 @@ void loadRegFromMemory(database_t *db, id_type id, registro_t *reg) {
 	reg->tu = db->idx_tu.nodes[sec_pos].cod;
 }
 
-void removerSecondary(database_t *db, secondary_t *secondary, id_type id, char *file_name) {
+void removerSecondary(database_t *db, secondary_t *secondary, id_type id, char *file_name) { //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	FILE *fd = fopen(file_name, "r+");
 	if(db->ordenado) {
 		// faz busca binária
@@ -406,7 +406,7 @@ void removerSecondary(database_t *db, secondary_t *secondary, id_type id, char *
 	fclose(fd);
 }
 
-void ordenarDB(database_t *db) {
+void ordenarDB(database_t *db) { //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	if(db->ordenado) {
 		// já está ordenado
 		return ;
@@ -475,7 +475,7 @@ void setOrdenado(database_t *db, char flag) {
 	#endif // DEBUG
 }
 
-void novoIndice(database_t *db, registro_t *reg, offset_t offset) {
+void novoIndice(database_t *db, registro_t *reg, offset_t offset) { //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	// atualiza o registro secundario idade
 	newSecondaryIdx(db, &db->idx_idade, reg->idade, reg->id, IDADEFILENAME);
 	// atualiza o registro secundario de generos
@@ -502,7 +502,7 @@ void novoIndice(database_t *db, registro_t *reg, offset_t offset) {
 	fecharArquivoIdx(db);
 }
 
-void criarIndiceComFileDB(database_t *db) {
+void criarIndiceComFileDB(database_t *db) { //Essa está sem comentário!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1<<<<<<<<<<AQUI>>>>>>>>>>>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 	#ifdef DEBUG
 		printf("Recriando o índice\n");
 	#endif // DEBUG
